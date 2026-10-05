@@ -113,6 +113,15 @@ const HONOR_BITWARDEN_AUTOFILL_ATTRIBUTE = new KeyDefinition(
   },
 );
 
+const ENABLE_BASIC_AUTH_RESPONSE = new UserKeyDefinition(
+  AUTOFILL_SETTINGS_DISK,
+  "enableBasicAuthResponse",
+  {
+    deserializer: (value: boolean) => value ?? false,
+    clearOn: [],
+  },
+);
+
 const ENABLE_CONTEXT_MENU = new KeyDefinition(AUTOFILL_SETTINGS_DISK, "enableContextMenu", {
   deserializer: (value: boolean) => value ?? true,
 });
@@ -170,6 +179,8 @@ export abstract class AutofillSettingsServiceAbstraction {
   setHonorBitwardenIgnoreAttribute: (newValue: boolean) => Promise<void>;
   honorBitwardenAutofillAttribute$: Observable<boolean>;
   setHonorBitwardenAutofillAttribute: (newValue: boolean) => Promise<void>;
+  enableBasicAuthResponse$: Observable<boolean>;
+  setEnableBasicAuthResponse: (newValue: boolean) => Promise<void>;
   enableContextMenu$: Observable<boolean>;
   setEnableContextMenu: (newValue: boolean) => Promise<void>;
   clearClipboardDelay$: Observable<ClearClipboardDelaySetting>;
@@ -218,6 +229,9 @@ export class AutofillSettingsService implements AutofillSettingsServiceAbstracti
 
   private honorBitwardenAutofillAttributeState: GlobalState<boolean>;
   readonly honorBitwardenAutofillAttribute$: Observable<boolean>;
+
+  private enableBasicAuthResponseState: ActiveUserState<boolean>;
+  readonly enableBasicAuthResponse$: Observable<boolean>;
 
   private enableContextMenuState: GlobalState<boolean>;
   readonly enableContextMenu$: Observable<boolean>;
@@ -322,6 +336,11 @@ export class AutofillSettingsService implements AutofillSettingsServiceAbstracti
       map((x) => x ?? false),
     );
 
+    this.enableBasicAuthResponseState = this.stateProvider.getActive(ENABLE_BASIC_AUTH_RESPONSE);
+    this.enableBasicAuthResponse$ = this.enableBasicAuthResponseState.state$.pipe(
+      map((x) => x ?? false),
+    );
+
     this.enableContextMenuState = this.stateProvider.getGlobal(ENABLE_CONTEXT_MENU);
     this.enableContextMenu$ = this.enableContextMenuState.state$.pipe(map((x) => x ?? true));
 
@@ -403,6 +422,10 @@ export class AutofillSettingsService implements AutofillSettingsServiceAbstracti
 
   async setHonorBitwardenAutofillAttribute(newValue: boolean): Promise<void> {
     await this.honorBitwardenAutofillAttributeState.update(() => newValue);
+  }
+
+  async setEnableBasicAuthResponse(newValue: boolean): Promise<void> {
+    await this.enableBasicAuthResponseState.update(() => newValue);
   }
 
   async setEnableContextMenu(newValue: boolean): Promise<void> {
