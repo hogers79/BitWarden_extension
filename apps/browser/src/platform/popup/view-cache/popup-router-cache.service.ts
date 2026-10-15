@@ -21,6 +21,8 @@ import {
 } from "../../../platform/services/popup-view-cache-background.service";
 import BrowserPopupUtils from "../../browser/browser-popup-utils";
 
+import { isInsideSettings } from "./settings-session";
+
 /**
  * Preserves route history when opening and closing the popup
  *
@@ -110,6 +112,8 @@ export class PopupRouterCacheService {
       options: {
         resetRouterCacheOnTabChange: data?.resetRouterCacheOnTabChange ?? false,
       },
+      // Fork patch: reopening the popup must not land in Settings.
+      fromSettings: isInsideSettings(),
     };
 
     await this.state.update((prevState) =>
@@ -161,7 +165,8 @@ export const popupRouterCacheGuard = ((): Observable<true | UrlTree> => {
 
   return popupHistoryService.last$().pipe(
     map((entry) => {
-      if (!entry) {
+      // Fork patch: a popup closed inside Settings reopens on the default page (the vault).
+      if (!entry || entry.fromSettings) {
         return true;
       }
 

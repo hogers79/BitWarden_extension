@@ -79,6 +79,21 @@ export class PasswordRepromptService {
     return await this.showMasterPasswordDialog();
   }
 
+  /**
+   * Fork patch: checks the passkey on every call and never opens SES. Falls back to the master
+   * password when no passkey check is available. Used for opening Settings.
+   */
+  async verifyEveryTime(): Promise<boolean> {
+    if (this.sensitiveActionVerifier == null) {
+      return true;
+    }
+    const verified = await this.sensitiveActionVerifier.verifyOnce();
+    if (verified !== null) {
+      return verified;
+    }
+    return await this.showMasterPasswordDialog();
+  }
+
   private async showMasterPasswordDialog() {
     const dialog = await this.dialogService.open<boolean>(PasswordRepromptComponent, {
       ariaModal: true,

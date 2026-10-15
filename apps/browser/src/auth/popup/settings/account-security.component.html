@@ -19,6 +19,8 @@
     <div class="tw-h-full tw-place-content-center"><bit-spinner></bit-spinner></div>
   } @else {
     <div [formGroup]="form">
+      <!-- Fork patch: unlock options are hidden. Unlock is master password only. -->
+      @if (false) {
       <bit-section>
         <bit-section-header>
           <h2 bitTypography="h6">{{ "unlockMethods" | i18n }}</h2>
@@ -118,6 +120,7 @@
           }
         </bit-card>
       </bit-section>
+      }
 
       <bit-section>
         <bit-section-header>

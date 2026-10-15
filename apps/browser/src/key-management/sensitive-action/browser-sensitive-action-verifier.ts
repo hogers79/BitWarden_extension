@@ -53,6 +53,23 @@ export class BrowserSensitiveActionVerifier implements SensitiveActionVerifier {
     return true;
   }
 
+  async verifyOnce(): Promise<boolean | null> {
+    const userId = await firstValueFrom(this.accountService.activeAccount$.pipe(getUserId));
+
+    if (!(await this.webAuthnPrfUnlockService.isPrfUnlockAvailable(userId))) {
+      return null;
+    }
+
+    try {
+      await this.webAuthnPrfUnlockService.unlockVaultWithPrf(userId);
+    } catch (error) {
+      this.logService.info("[SensitiveActionVerifier] Passkey check failed or was cancelled", error);
+      return false;
+    }
+
+    return true;
+  }
+
   async enable(): Promise<void> {
     const userId = await firstValueFrom(this.accountService.activeAccount$.pipe(getUserId));
     await this.stateProvider.setUserState(SES_ACTIVATED_AT, Date.now(), userId);

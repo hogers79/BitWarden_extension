@@ -56,6 +56,9 @@ export type RouteHistoryCacheState = {
 
   /** Options for managing the route history cache */
   options?: RouteCacheOptions;
+
+  /** Fork patch: the route was visited inside Settings, so it is not restored on reopen. */
+  fromSettings?: boolean;
 };
 
 /** We cannot use `UserKeyDefinition` because we must be able to store state when there is no active user. */

@@ -10,6 +10,13 @@ export abstract class SensitiveActionVerifier {
    */
   abstract verify(forceCheck?: boolean): Promise<boolean | null>;
 
+  /**
+   * Runs the passkey check every time. It never reads, opens or extends SES.
+   * @returns true when allowed, false when refused or cancelled, null when no passkey check is
+   * available and the caller should fall back to the master password.
+   */
+  abstract verifyOnce(): Promise<boolean | null>;
+
   /** Whether a passkey check is available on this machine. */
   abstract isPasskeyAvailable(): Promise<boolean>;
 

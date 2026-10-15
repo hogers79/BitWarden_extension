@@ -85,6 +85,7 @@ import { SendV2Component } from "../tools/popup/send-v2/send-v2.component";
 import { AboutPageV2Component } from "../tools/popup/settings/about-page/about-page-v2.component";
 import { ExportBrowserV2Component } from "../tools/popup/settings/export/export-browser-v2.component";
 import { ImportBrowserV2Component } from "../tools/popup/settings/import/import-browser-v2.component";
+import { settingsSensitiveGuard } from "../key-management/sensitive-action/settings-sensitive.guard";
 import { SettingsV2Component } from "../tools/popup/settings/settings-v2.component";
 import { ShareItemComponent } from "../tools/popup/share/share-item.component";
 import { AtRiskPasswordsComponent } from "../vault/popup/components/at-risk-passwords/at-risk-passwords.component";
@@ -798,7 +799,7 @@ const routes: Routes = [
       {
         path: "settings",
         component: SettingsV2Component,
-        canActivate: [authGuard],
+        canActivate: [authGuard, settingsSensitiveGuard],
         data: { elevation: 0 } satisfies RouteDataProperties,
       },
       {
