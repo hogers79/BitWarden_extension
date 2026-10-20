@@ -7,6 +7,8 @@ export const ScheduledTaskNames = {
   scheduleNextSyncInterval: "scheduleNextSyncInterval",
   eventUploadsInterval: "eventUploadsInterval",
   vaultTimeoutCheckInterval: "vaultTimeoutCheckInterval",
+  // Fork patch: the six-hourly stay-unlocked expiry check.
+  autoUnlockExpiryCheckInterval: "autoUnlockExpiryCheckInterval",
   clearPopupViewCache: "clearPopupViewCache",
   targetingRulesUpdate: "targetingRulesUpdate",
   phishingDomainUpdate: "phishingDomainUpdate",

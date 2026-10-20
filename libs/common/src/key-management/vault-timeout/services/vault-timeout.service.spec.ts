@@ -388,7 +388,8 @@ describe("VaultTimeoutService", () => {
     });
 
     describe("7 day auto unlock expiry", () => {
-      it("locks a never-lock user whose auto unlock has expired, even while a view is focused", async () => {
+      it("does not read the auto unlock expiry on each timeout check", async () => {
+        // The expiry is checked once, when the browser opens, by the auto unlock service.
         setupAccounts(
           {
             1: {
@@ -398,16 +399,17 @@ describe("VaultTimeoutService", () => {
               vaultTimeout: VaultTimeoutStringType.Never as VaultTimeout,
             },
           },
-          { isViewFocused: true },
+          { isViewFocused: false },
         );
         vaultTimeoutSettingsService.isAutoUnlockExpired.mockResolvedValue(true);
 
         await vaultTimeoutService.checkVaultTimeout();
 
-        expectUserToHaveLocked("1");
+        expect(vaultTimeoutSettingsService.isAutoUnlockExpired).not.toHaveBeenCalled();
+        expectNoAction("1");
       });
 
-      it("only locks the users whose auto unlock has expired", async () => {
+      it("locks an unlocked user whose auto unlock has expired on the six-hourly check", async () => {
         setupAccounts(
           {
             1: {
@@ -420,35 +422,23 @@ describe("VaultTimeoutService", () => {
               isAuthenticated: true,
               vaultTimeout: VaultTimeoutStringType.Never as VaultTimeout,
             },
-          },
-          { isViewFocused: false },
-        );
-        vaultTimeoutSettingsService.isAutoUnlockExpired.mockImplementation((userId) =>
-          Promise.resolve(userId === "2"),
-        );
-
-        await vaultTimeoutService.checkVaultTimeout();
-
-        expectNoAction("1");
-        expectUserToHaveLocked("2");
-      });
-
-      it("does not lock a never-lock user whose auto unlock has not expired", async () => {
-        setupAccounts(
-          {
-            1: {
-              authStatus: AuthenticationStatus.Unlocked,
+            3: {
+              authStatus: AuthenticationStatus.Locked,
               isAuthenticated: true,
               vaultTimeout: VaultTimeoutStringType.Never as VaultTimeout,
             },
           },
           { isViewFocused: false },
         );
-        vaultTimeoutSettingsService.isAutoUnlockExpired.mockResolvedValue(false);
+        vaultTimeoutSettingsService.isAutoUnlockExpired.mockImplementation((userId) =>
+          Promise.resolve(userId === "2" || userId === "3"),
+        );
 
-        await vaultTimeoutService.checkVaultTimeout();
+        await vaultTimeoutService.checkAutoUnlockExpiry();
 
         expectNoAction("1");
+        expectUserToHaveLocked("2");
+        expectNoAction("3");
       });
     });
   });

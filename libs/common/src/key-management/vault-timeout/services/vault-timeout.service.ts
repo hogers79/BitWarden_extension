@@ -35,6 +35,10 @@ export class VaultTimeoutService implements VaultTimeoutServiceAbstraction {
       ScheduledTaskNames.vaultTimeoutCheckInterval,
       () => this.checkVaultTimeout(),
     );
+    this.taskSchedulerService.registerTaskHandler(
+      ScheduledTaskNames.autoUnlockExpiryCheckInterval,
+      () => this.checkAutoUnlockExpiry(),
+    );
   }
 
   async init(checkOnInterval: boolean) {
@@ -54,6 +58,33 @@ export class VaultTimeoutService implements VaultTimeoutServiceAbstraction {
       ScheduledTaskNames.vaultTimeoutCheckInterval,
       10 * 1000, // check every 10 seconds
     );
+    // Fork patch: the stay-unlocked expiry is checked once when the browser opens (when the stored
+    // key is read to unlock) and then every six hours.
+    this.taskSchedulerService.setInterval(
+      ScheduledTaskNames.autoUnlockExpiryCheckInterval,
+      6 * 60 * 60 * 1000, // every 6 hours
+    );
+  }
+
+  /**
+   * Fork patch: locks any unlocked user whose stay-unlocked period has run out. Runs every six
+   * hours, not on every timeout check, because it reads the stored key.
+   */
+  async checkAutoUnlockExpiry(): Promise<void> {
+    const accounts = await firstValueFrom(this.accountService.accounts$);
+    for (const userIdString of Object.keys(accounts ?? {})) {
+      const userId = userIdString as UserId;
+      const authStatus = await this.authService.getAuthStatus(userId);
+      if (
+        authStatus === AuthenticationStatus.Locked ||
+        authStatus === AuthenticationStatus.LoggedOut
+      ) {
+        continue;
+      }
+      if (await this.vaultTimeoutSettingsService.isAutoUnlockExpired(userId)) {
+        await this.executeTimeoutAction(userId);
+      }
+    }
   }
 
   async checkVaultTimeout(): Promise<void> {
@@ -87,12 +118,9 @@ export class VaultTimeoutService implements VaultTimeoutServiceAbstraction {
     activeUserId: string,
     isViewFocused: boolean,
   ): Promise<boolean> {
-    // Fork patch: the never-lock key expires 7 days after the last master password unlock,
-    // regardless of activity or focus.
-    if (await this.vaultTimeoutSettingsService.isAutoUnlockExpired(userId as UserId)) {
-      return true;
-    }
-
+    // Fork patch: the stay-unlocked expiry is NOT checked here. It used to run every 10 seconds
+    // and read the stored key each time. It is now checked once, when the browser opens, by
+    // DefaultAutoUnlockService.getAutoUnlockKey(), which discards an expired key before unlocking.
     if (isViewFocused && userId === activeUserId) {
       // We know a view is focused and this is the currently active user
       // which means they are likely looking at their vault
