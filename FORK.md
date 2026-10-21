@@ -4,8 +4,9 @@ A personal fork of [bitwarden/clients](https://github.com/bitwarden/clients) bui
 Microsoft Edge extension, on the bitwarden.com (US) cloud. Only the browser extension is maintained.
 The web, desktop and CLI apps are untouched upstream code and are not supported here.
 
-- Upstream baseline: `245879a5e3269da22197d3306a2f8b0355794095`. The first commit on `main` is an
-  unmodified snapshot of it, so `git diff 1056bd2 HEAD` shows every fork change.
+- Upstream baseline: release `browser-v2026.10.0` of bitwarden/clients (merged 21 Oct 2026 from the
+  earlier baseline `245879a5e3269da22197d3306a2f8b0355794095`, which is the commit the first
+  `main` commit `1056bd2` snapshots). Merge new upstream releases, not single commits.
 - Modified builds are loaded unpacked in Edge developer mode. They do not auto-update, and Bitwarden
   does not support them.
 
@@ -64,7 +65,7 @@ npm run build:edge
 1. Zip or copy the contents of `apps/browser/build` so that `manifest.json` is directly inside the folder.
 2. Open `edge://extensions`, turn on **Developer mode**, and remove any older copy.
 3. Choose **Load unpacked** and pick that folder.
-4. Check the version label in `edge://extensions`. The fork build is named `2026.9.3-fork-v7`.
+4. Check the version label in `edge://extensions`. The fork build is named `2026.10.0-fork-v8`.
 
 To restart Edge fully, use `edge://restart`. Closing the windows may leave Edge running in the
 background. Turn off **Startup boost** and **Continue running background extensions** in Edge

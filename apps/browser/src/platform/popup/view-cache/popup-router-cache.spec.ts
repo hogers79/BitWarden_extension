@@ -104,12 +104,14 @@ describe("Popup router cache guard", () => {
           resetRouterCacheOnTabChange: false,
         },
         url: "/a",
+        fromSettings: false,
       },
       {
         options: {
           resetRouterCacheOnTabChange: false,
         },
         url: "/b",
+        fromSettings: false,
       },
     ]);
 
@@ -121,6 +123,7 @@ describe("Popup router cache guard", () => {
           resetRouterCacheOnTabChange: false,
         },
         url: "/a",
+        fromSettings: false,
       },
     ]);
   });
@@ -149,6 +152,7 @@ describe("Popup router cache guard", () => {
           resetRouterCacheOnTabChange: false,
         },
         url: "/a",
+        fromSettings: false,
       },
     ]);
   });
