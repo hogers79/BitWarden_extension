@@ -15,6 +15,8 @@ export type BottomNavigationButton = {
   icon: BitSvg;
   iconActive: BitSvg;
   showBerry?: boolean;
+  /** Fork patch: when set, the button runs this instead of navigating. */
+  action?: () => void;
 };
 
 @Component({

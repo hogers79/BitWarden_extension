@@ -12,3 +12,10 @@ export const SendActive = svg`
     <path fill-rule="evenodd" clip-rule="evenodd" d="M1.46959 3.15703C1.76282 2.9816 2.13429 2.95125 2.45787 3.07561L22.3626 11.1285C22.749 11.2773 23 11.6202 23 12C22.9999 12.3798 22.749 12.7228 22.3626 12.8716L2.45787 20.9244C2.13437 21.0487 1.76276 21.0184 1.46959 20.843C1.17645 20.6676 1.0001 20.3708 1 20.0529V3.94715C1 3.62925 1.17645 3.33247 1.46959 3.15703ZM3.09524 10.1052L11.4762 12L3.09524 13.8948V18.6207L19.274 12L3.09524 5.37842V10.1052Z" class="tw-fill-fg-brand"/>
   </svg>
 `;
+
+// Fork patch: icon for the bottom-bar Sync button that replaces Send.
+export const SyncNav = svg`
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M12 4a8 8 0 0 1 7.3 4.7l-1.8.8A6 6 0 0 0 12 6V9L7 5l5-4v3zm0 16a8 8 0 0 1-7.3-4.7l1.8-.8A6 6 0 0 0 12 18v-3l5 4-5 4v-3z" class="tw-fill-fg-body"/>
+  </svg>
+`;

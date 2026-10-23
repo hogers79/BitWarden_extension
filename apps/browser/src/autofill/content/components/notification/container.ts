@@ -23,6 +23,8 @@ export type NotificationContainerProps = NotificationBarIframeInitData & {
   handleCloseNotification: (e: Event) => void;
   handleSaveAction: (e: Event) => void;
   handleEditOrUpdateAction: (e: Event) => void;
+  /** Fork patch: "don't offer to save for this site again"; only shown on the save-login bar. */
+  handleNeverAction?: (e: Event) => void;
 } & {
   ciphers?: NotificationCipherData[];
   collections?: CollectionView[];
@@ -39,6 +41,7 @@ export type NotificationContainerProps = NotificationBarIframeInitData & {
 export function NotificationContainer({
   handleCloseNotification,
   handleEditOrUpdateAction,
+  handleNeverAction,
   handleSaveAction,
   ciphers,
   collections,
@@ -61,6 +64,7 @@ export function NotificationContainer({
         i18n,
         message: headerMessage,
         theme,
+        handleNeverAction: type === NotificationTypes.Add ? handleNeverAction : undefined,
       })}
       ${
         showBody

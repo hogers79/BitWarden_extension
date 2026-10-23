@@ -3,6 +3,7 @@ import { html } from "lit";
 
 import { Theme, ThemeTypes } from "@bitwarden/common/platform/enums";
 
+import { BlockButton } from "../buttons/block-button";
 import { CloseButton } from "../buttons/close-button";
 import { I18n } from "../common-types";
 import { spacing, themes } from "../constants/styles";
@@ -22,6 +23,8 @@ export type NotificationHeaderProps = {
   standalone?: boolean;
   theme: Theme;
   handleCloseNotification: (e: Event) => void;
+  /** Fork patch: when set, shows the "don't offer for this site again" button. */
+  handleNeverAction?: (e: Event) => void;
 };
 
 export function NotificationHeader({
@@ -30,6 +33,7 @@ export function NotificationHeader({
   standalone = false,
   theme = ThemeTypes.Light,
   handleCloseNotification,
+  handleNeverAction,
 }: NotificationHeaderProps) {
   const showIcon = true;
   const isDismissable = true;
@@ -38,6 +42,7 @@ export function NotificationHeader({
     <div class=${notificationHeaderStyles({ standalone, theme })}>
       ${showIcon ? BrandIconContainer({ theme }) : null}
       ${message ? NotificationHeaderMessage({ message, theme }) : null}
+      ${handleNeverAction ? BlockButton({ handleNeverAction, i18n, theme }) : null}
       ${isDismissable ? CloseButton({ handleCloseNotification, i18n, theme }) : null}
     </div>
   `;

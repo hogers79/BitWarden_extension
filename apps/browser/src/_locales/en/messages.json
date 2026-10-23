@@ -1006,6 +1006,15 @@
   "never": {
     "message": "Never"
   },
+  "neverForThisSite": {
+    "message": "Don't offer for this site again"
+  },
+  "neverConfirmQuestion": {
+    "message": "Stop offering to save passwords for this site? You can undo this later in Excluded domains."
+  },
+  "neverConfirmYes": {
+    "message": "Yes, don't offer"
+  },
   "security": {
     "message": "Security"
   },

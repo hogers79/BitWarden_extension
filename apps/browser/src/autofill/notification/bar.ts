@@ -9,6 +9,7 @@ import { CollectionView, I18n, OrgView } from "../content/components/common-type
 import { AtRiskNotification } from "../content/components/notification/at-risk-password/container";
 import { NotificationConfirmationContainer } from "../content/components/notification/confirmation/container";
 import { NotificationContainer } from "../content/components/notification/container";
+import { NeverConfirmation } from "../content/components/notification/never-confirmation";
 import { selectedCipher as selectedCipherSignal } from "../content/components/signals/selected-cipher";
 import { selectedFolder as selectedFolderSignal } from "../content/components/signals/selected-folder";
 import { selectedVault as selectedVaultSignal } from "../content/components/signals/selected-vault";
@@ -59,7 +60,11 @@ function getI18n() {
     loginUpdateTaskSuccess: chrome.i18n.getMessage("loginUpdateTaskSuccess"),
     loginUpdateTaskSuccessAdditional: chrome.i18n.getMessage("loginUpdateTaskSuccessAdditional"),
     myVault: chrome.i18n.getMessage("myVault"),
+    cancel: chrome.i18n.getMessage("cancel"),
     never: chrome.i18n.getMessage("never"),
+    neverConfirmQuestion: chrome.i18n.getMessage("neverConfirmQuestion"),
+    neverConfirmYes: chrome.i18n.getMessage("neverConfirmYes"),
+    neverForThisSite: chrome.i18n.getMessage("neverForThisSite"),
     newItem: chrome.i18n.getMessage("newItem"),
     nextSecurityTaskAction: chrome.i18n.getMessage("nextSecurityTaskAction"),
     notificationAddDesc: chrome.i18n.getMessage("notificationAddDesc"),
@@ -277,22 +282,49 @@ async function initNotificationBar(message: NotificationBarWindowMessage) {
       collections,
     };
 
+    // Fork patch: the save bar's block button asks "are you sure?" in place, then either adds the
+    // site to the never-offer list or goes back to the normal bar.
+    const renderNotification = () =>
+      render(
+        NotificationContainer({
+          ...notificationBarIframeInitData,
+          headerMessage,
+          type: notificationType,
+          theme: resolvedTheme,
+          notificationTestId,
+          personalVaultIsAllowed: !personalVaultDisallowed,
+          handleCloseNotification,
+          handleSaveAction,
+          handleEditOrUpdateAction,
+          handleNeverAction,
+          i18n,
+        }),
+        document.body,
+      );
+
+    function handleNeverAction(e: Event) {
+      e.preventDefault();
+      render(
+        NeverConfirmation({
+          i18n,
+          notificationTestId: "never-confirmation-bar",
+          theme: resolvedTheme,
+          handleCancel: (cancelEvent: Event) => {
+            cancelEvent.preventDefault();
+            renderNotification();
+          },
+          handleCloseNotification,
+          handleConfirm: (confirmEvent: Event) => {
+            confirmEvent.preventDefault();
+            sendPlatformMessage({ command: "bgNeverSave" });
+          },
+        }),
+        document.body,
+      );
+    }
+
     // @TODO use context to avoid prop drilling
-    return render(
-      NotificationContainer({
-        ...notificationBarIframeInitData,
-        headerMessage,
-        type: notificationType,
-        theme: resolvedTheme,
-        notificationTestId,
-        personalVaultIsAllowed: !personalVaultDisallowed,
-        handleCloseNotification,
-        handleSaveAction,
-        handleEditOrUpdateAction,
-        i18n,
-      }),
-      document.body,
-    );
+    return renderNotification();
   });
 
   function handleEditOrUpdateAction(e: Event) {

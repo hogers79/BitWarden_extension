@@ -7,8 +7,7 @@ import {
   VaultActive,
   GeneratorInactive,
   GeneratorActive,
-  SendInactive,
-  SendActive,
+  SyncNav,
   SettingsInactive,
   SettingsActive,
 } from "@bitwarden/assets/svg";
@@ -16,7 +15,9 @@ import { AccountService } from "@bitwarden/common/auth/abstractions/account.serv
 import { getUserId } from "@bitwarden/common/auth/services/account.service";
 import { AutofillSettingsServiceAbstraction } from "@bitwarden/common/autofill/services/autofill-settings.service";
 import { BottomNavigationButton } from "@bitwarden/components";
-import { SendPolicyService } from "@bitwarden/send-ui";
+import { I18nService } from "@bitwarden/common/platform/abstractions/i18n.service";
+import { SyncService } from "@bitwarden/common/vault/abstractions/sync/sync.service.abstraction";
+import { ToastService } from "@bitwarden/components";
 
 import { HealthAccessService } from "../dirt/health/popup/services/health-access.service";
 
@@ -32,9 +33,11 @@ export class TabsV2Component {
     private nudgesService: NudgesService,
     private accountService: AccountService,
     private autofillSettingsService: AutofillSettingsServiceAbstraction,
+    private syncService: SyncService,
+    private toastService: ToastService,
+    private i18nService: I18nService,
   ) {}
 
-  private sendPolicyService = inject(SendPolicyService);
   private healthAccessService = inject(HealthAccessService);
 
   private userId$ = this.accountService.activeAccount$.pipe(getUserId);
@@ -51,16 +54,20 @@ export class TabsV2Component {
     switchMap((userId) => this.healthAccessService.healthNavButton$(userId)),
   );
 
-  private sendEnabled$ = this.sendPolicyService.disableSend$.pipe(
-    map((disableSend) => !disableSend),
-  );
+  private async syncNow() {
+    const success = await this.syncService.fullSync(true);
+    this.toastService.showToast({
+      variant: success ? "success" : "error",
+      title: "",
+      message: this.i18nService.t(success ? "syncingComplete" : "syncingFailed"),
+    });
+  }
 
   protected navButtons$: Observable<BottomNavigationButton[]> = combineLatest([
     this.showSettingsBerry$.pipe(startWith(false)),
-    this.sendEnabled$.pipe(startWith(true)),
     this.healthNavButton$.pipe(startWith(undefined)),
   ]).pipe(
-    map(([showBerry, sendEnabled, healthNavButton]) => {
+    map(([showBerry, healthNavButton]) => {
       const buttons: BottomNavigationButton[] = [
         {
           label: "vault",
@@ -74,16 +81,13 @@ export class TabsV2Component {
           icon: GeneratorInactive,
           iconActive: GeneratorActive,
         },
-        ...(sendEnabled
-          ? [
-              {
-                label: "send",
-                page: "/tabs/send",
-                icon: SendInactive,
-                iconActive: SendActive,
-              } as BottomNavigationButton,
-            ]
-          : []),
+        {
+          label: "sync",
+          page: "/tabs/sync",
+          icon: SyncNav,
+          iconActive: SyncNav,
+          action: () => void this.syncNow(),
+        },
         ...(healthNavButton ? [healthNavButton] : []),
         {
           label: "settings",

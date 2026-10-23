@@ -10,7 +10,8 @@
                 [class.tw-font-semibold]="rla.isActive"
                 [class.tw-text-fg-brand]="rla.isActive"
                 [class.tw-text-fg-body]="!rla.isActive"
-                [routerLink]="button.page"
+                [routerLink]="button.action ? null : button.page"
+                (click)="button.action?.()"
                 [appA11yTitle]="buttonTitle(button)"
                 routerLinkActive
                 #rla="routerLinkActive"
