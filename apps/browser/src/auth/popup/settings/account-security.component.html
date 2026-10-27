@@ -149,6 +149,17 @@
           <h2 bitTypography="h6">{{ "sensitiveActionsPasskey" | i18n }}</h2>
         </bit-section-header>
         <bit-card>
+          <form [formGroup]="sesMinutesForm" class="tw-mb-3">
+            <bit-form-field disableMargin>
+              <bit-label>{{ "sensitiveLockFor" | i18n }}</bit-label>
+              <bit-select formControlName="minutes">
+                @for (o of sesMinuteOptions; track o.value) {
+                  <bit-option [value]="o.value" [label]="o.name"></bit-option>
+                }
+              </bit-select>
+              <bit-hint>{{ "sensitiveLockForHint" | i18n }}</bit-hint>
+            </bit-form-field>
+          </form>
           <p class="tw-mb-2">
             {{
               (passkeyAvailable() ? "sensitiveActionsPasskeyReady" : "sensitiveActionsPasskeyMissing")

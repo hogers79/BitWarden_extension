@@ -833,6 +833,12 @@
   "stayUnlockedForHint": {
     "message": "After this long you must unlock again with your passkey or master password, even after restarting the browser or computer."
   },
+  "sensitiveLockFor": {
+    "message": "Sensitive mode lasts for"
+  },
+  "sensitiveLockForHint": {
+    "message": "After one passkey check, sensitive actions like viewing and editing stay open this long. Opening Settings always asks."
+  },
   "unlockDays1": {
     "message": "1 day"
   },

@@ -705,7 +705,13 @@ const safeProviders: SafeProvider[] = [
   safeProvider({
     provide: SensitiveActionVerifier,
     useClass: BrowserSensitiveActionVerifier,
-    deps: [AccountServiceAbstraction, StateProvider, WebAuthnPrfUnlockService, LogService],
+    deps: [
+      AccountServiceAbstraction,
+      StateProvider,
+      WebAuthnPrfUnlockService,
+      LogService,
+      MessagingServiceAbstraction,
+    ],
   }),
   safeProvider({
     provide: Fido2UserVerificationService,

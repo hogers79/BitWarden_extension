@@ -11,6 +11,8 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { NavigationEnd, Router, RouterOutlet } from "@angular/router";
+
+import { isInsideSettings, setInsideSettings } from "../platform/popup/view-cache/settings-session";
 import {
   catchError,
   concatMap,
@@ -138,6 +140,15 @@ export class AppComponent implements OnInit, OnDestroy {
     await this.syncIfReturningFromCheckout();
     window.addEventListener("focus", this.onWindowFocus);
 
+    // Fork patch: the popup stays alive when hidden, so hiding it must end the Settings visit.
+    // Otherwise reopening it would show Settings, or skip the passkey check on the next open.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden" && isInsideSettings()) {
+        setInsideSettings(false);
+        void this.router.navigate(["/tabs/vault"]);
+      }
+    });
+
     this.authRequestAnsweringService.setupUnlockListenersForProcessingAuthRequests(this.destroy$);
 
     this.authService.activeAccountStatus$
@@ -149,6 +160,20 @@ export class AppComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
       )
       .subscribe();
+
+    // Fork patch: a click soon after browser start can open the popup before the background has
+    // finished its auto unlock (the 7 day stay unlocked setting). Leave the lock screen as soon
+    // as the vault turns out to be unlocked.
+    this.authService.activeAccountStatus$
+      .pipe(
+        filter((status) => status === AuthenticationStatus.Unlocked),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(() => {
+        if (this.router.url.startsWith("/lock")) {
+          void this.router.navigate(["/tabs/vault"]);
+        }
+      });
 
     this.ngZone.runOutsideAngular(() => {
       window.onmousedown = () => this.recordActivity();

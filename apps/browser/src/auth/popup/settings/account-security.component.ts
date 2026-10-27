@@ -32,6 +32,9 @@ import { PinServiceAbstraction } from "@bitwarden/common/key-management/pin/pin.
 import { SharedUnlockSettingsService } from "@bitwarden/common/key-management/shared-unlock";
 import {
   AUTO_UNLOCK_DAY_OPTIONS,
+  SES_DEFAULT_MINUTES,
+  SES_DURATION_MINUTES,
+  SES_DURATION_OPTIONS_MINUTES,
   VaultTimeoutSettingsService,
 } from "@bitwarden/common/key-management/vault-timeout";
 import { ConfigService } from "@bitwarden/common/platform/abstractions/config/config.service";
@@ -60,6 +63,7 @@ import {
   SpinnerComponent,
 } from "@bitwarden/components";
 import { KeyService, BiometricStateService } from "@bitwarden/key-management";
+import { StateProvider } from "@bitwarden/state";
 // eslint-disable-next-line no-restricted-imports
 import { LegacyCompatKeyService } from "@bitwarden/legacy-crypto";
 import { LockService, LockSource } from "@bitwarden/unlock";
@@ -123,6 +127,13 @@ export class AccountSecurityComponent implements OnInit, OnDestroy {
   }));
   protected unlockDaysForm = this.formBuilder.group({ days: [7 as number] });
 
+  // Fork patch: how long sensitive mode lasts after a passkey check.
+  protected sesMinuteOptions = SES_DURATION_OPTIONS_MINUTES.map((value) => ({
+    value,
+    name: value < 60 ? `${value} minutes` : value === 60 ? "1 hour" : `${value / 60} hours`,
+  }));
+  protected sesMinutesForm = this.formBuilder.group({ minutes: [SES_DEFAULT_MINUTES as number] });
+
   form = this.formBuilder.group({
     pin: [null as boolean | null],
     pinLockWithMasterPassword: false,
@@ -181,6 +192,7 @@ export class AccountSecurityComponent implements OnInit, OnDestroy {
     private logService: LogService,
     private phishingDetectionSettingsService: PhishingDetectionSettingsServiceAbstraction,
     private sharedUnlockSettingsService: SharedUnlockSettingsService,
+    private stateProvider: StateProvider,
   ) {
     this.multiClientPasswordManagement$ = this.configService.getFeatureFlag$(
       FeatureFlag.PM32413_MultiClientPasswordManagement,
@@ -231,6 +243,24 @@ export class AccountSecurityComponent implements OnInit, OnDestroy {
     };
     this.form.patchValue(initialValues, { emitEvent: false });
     this.passkeyAvailable.set(await this.sensitiveActionVerifier.isPasskeyAvailable());
+
+    const savedMinutes = await firstValueFrom(
+      this.stateProvider.getUserState$(SES_DURATION_MINUTES, activeAccount.id),
+    );
+    this.sesMinutesForm.patchValue(
+      {
+        minutes:
+          savedMinutes != null && SES_DURATION_OPTIONS_MINUTES.includes(savedMinutes)
+            ? savedMinutes
+            : SES_DEFAULT_MINUTES,
+      },
+      { emitEvent: false },
+    );
+    this.sesMinutesForm.controls.minutes.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async (minutes) => {
+        await this.stateProvider.setUserState(SES_DURATION_MINUTES, minutes, activeAccount.id);
+      });
 
     this.unlockDaysForm.patchValue(
       {

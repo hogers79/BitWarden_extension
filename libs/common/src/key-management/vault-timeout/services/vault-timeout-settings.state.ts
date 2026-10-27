@@ -65,7 +65,27 @@ export const AUTO_UNLOCK_PASSWORD_AT = new UserKeyDefinition<number | null>(
  * Fork patch: Sensitive Enabled State (SES). Epoch ms of the last successful passkey check. SES is
  * open for SES_DURATION_MS after that, and is cleared on lock or logout.
  */
-export const SES_DURATION_MS = 60 * 60 * 1000;
+export const SES_DURATION_OPTIONS_MINUTES = [5, 10, 15, 30, 60, 120];
+export const SES_DEFAULT_MINUTES = 15;
+export const SES_DURATION_MS = SES_DEFAULT_MINUTES * 60 * 1000;
+/** Fork patch: how long SES stays open, in minutes. Chosen in Settings; survives lock. */
+export const SES_DURATION_MINUTES = new UserKeyDefinition<number | null>(
+  VAULT_TIMEOUT_SETTINGS_DISK_LOCAL,
+  "sensitiveEnabledStateMinutes",
+  {
+    deserializer: (value) => value,
+    clearOn: ["logout"],
+  },
+);
+/** Fork patch: consecutive failed passkey checks. Persists across sessions; reset on success. */
+export const SES_FAILED_ATTEMPTS = new UserKeyDefinition<number | null>(
+  VAULT_TIMEOUT_SETTINGS_DISK_LOCAL,
+  "sensitiveFailedAttempts",
+  {
+    deserializer: (value) => value,
+    clearOn: ["logout"],
+  },
+);
 export const SES_ACTIVATED_AT = new UserKeyDefinition<number | null>(
   VAULT_TIMEOUT_SETTINGS_MEMORY,
   "sensitiveEnabledStateActivatedAt",

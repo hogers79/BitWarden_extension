@@ -1,4 +1,5 @@
 {
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy67uK7mYS72x3oib/e3ftPd6yfNdrBRGC80CR0b8nVNqQ4jF2cF+ymuJqZY+gQMQ3YTYdByGcm2jHJzR1k6TrAL0iYyPBsNPPxI9idwepUguE8ey1QI/+uqr7dykviaOZhIgIkRPf5EDQ2Z/EaKHbN1+ow4qnFB1WArgbgte304Vljp2gX4oNdLzwMWYdFfdyhf3GGuhjgeh9VLl7zk+a+4mvVjcMebuCplrrKtqOSmcYbSHhqx0LJypZusOO4ZQTgZczTb8wFcK+rVAtnqePQdiBnSPU2qKXDXV8wVZnI8WMgPzPwijwmLF8/8mf1P+Ts7yQb3XFxdzBrPKdXNa0QIDAQAB",
   "manifest_version": 3,
   "minimum_chrome_version": "134.0",
   "name": "__MSG_extName__",

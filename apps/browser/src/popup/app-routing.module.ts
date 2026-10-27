@@ -1,5 +1,5 @@
 import { Injectable, NgModule } from "@angular/core";
-import { ActivatedRouteSnapshot, RouteReuseStrategy, RouterModule, Routes } from "@angular/router";
+import { ActivatedRouteSnapshot, PreloadAllModules, RouteReuseStrategy, RouterModule, Routes } from "@angular/router";
 
 import { AuthenticationTimeoutComponent } from "@bitwarden/angular/auth/components/authentication-timeout.component";
 import { AuthRoute } from "@bitwarden/angular/auth/constants";
@@ -91,6 +91,7 @@ import { SendV2Component } from "../tools/popup/send-v2/send-v2.component";
 import { AboutPageV2Component } from "../tools/popup/settings/about-page/about-page-v2.component";
 import { ExportBrowserV2Component } from "../tools/popup/settings/export/export-browser-v2.component";
 import { ImportBrowserV2Component } from "../tools/popup/settings/import/import-browser-v2.component";
+import { editSensitiveGuard } from "../key-management/sensitive-action/edit-sensitive.guard";
 import { settingsSensitiveGuard } from "../key-management/sensitive-action/settings-sensitive.guard";
 import { SettingsV2Component } from "../tools/popup/settings/settings-v2.component";
 import { ShareItemComponent } from "../tools/popup/share/share-item.component";
@@ -264,7 +265,7 @@ const routes: Routes = [
   {
     path: "edit-cipher",
     component: AddEditComponent,
-    canActivate: [authGuard, debounceNavigationGuard()],
+    canActivate: [authGuard, editSensitiveGuard, debounceNavigationGuard()],
     data: {
       // Above "trash"
       elevation: 3,
@@ -906,6 +907,7 @@ export class NoRouteReuseStrategy implements RouteReuseStrategy {
     RouterModule.forRoot(routes, {
       useHash: true,
       onSameUrlNavigation: "reload",
+      preloadingStrategy: PreloadAllModules,
       /*enableTracing: true,*/
     }),
   ],

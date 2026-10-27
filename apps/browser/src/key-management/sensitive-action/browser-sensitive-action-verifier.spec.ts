@@ -36,7 +36,7 @@ describe("BrowserSensitiveActionVerifier", () => {
     prfService.isPrfUnlockAvailable.mockResolvedValue(true);
     prfService.unlockVaultWithPrf.mockResolvedValue({} as UserKey);
 
-    sut = new BrowserSensitiveActionVerifier(accountService, stateProvider, prfService, logService);
+    sut = new BrowserSensitiveActionVerifier(accountService, stateProvider, prfService, logService, { send: jest.fn() } as any);
   });
 
   afterEach(() => {
