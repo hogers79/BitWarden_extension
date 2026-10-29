@@ -349,6 +349,7 @@ import { AutoSubmitLoginBackground } from "../autofill/background/auto-submit-lo
 import { AutofillOrchestrator } from "../autofill/background/autofill-orchestrator";
 import ContextMenusBackground from "../autofill/background/context-menus.background";
 import NotificationBackground from "../autofill/background/notification.background";
+import { NeverSaveSyncService } from "../autofill/services/never-save-sync.service";
 import { OverlayNotificationsBackground } from "../autofill/background/overlay-notifications.background";
 import { OverlayBackground } from "../autofill/background/overlay.background";
 import TabsBackground from "../autofill/background/tabs.background";
@@ -549,6 +550,7 @@ export default class MainBackground {
   kdfConfigService: KdfConfigService;
   offscreenDocumentService: OffscreenDocumentService;
   syncServiceListener: SyncServiceListener;
+  neverSaveSyncService: NeverSaveSyncService; // Fork patch
   browserInitialInstallService: BrowserInitialInstallService;
   defaultPasswordManagerPromptStateAccessor: DefaultPasswordManagerPromptStateAccessor;
   backgroundSyncService: BackgroundSyncService;
@@ -1902,6 +1904,15 @@ export default class MainBackground {
     await this.runtimeBackground.init();
     this.autofillOrchestrator.init();
     await this.notificationBackground.init();
+    // Fork patch: share the never-offer-to-save list through a secure note.
+    this.neverSaveSyncService = new NeverSaveSyncService(
+      this.accountService,
+      this.cipherService,
+      this.domainSettingsService,
+      this.stateProvider,
+      this.syncService,
+    );
+    this.neverSaveSyncService.init();
     this.overlayNotificationsBackground.init();
     this.commandsBackground.init();
     this.contextMenusBackground?.init();

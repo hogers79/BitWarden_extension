@@ -13,6 +13,7 @@ import { AccountService } from "@bitwarden/common/auth/abstractions/account.serv
 import { getUserId } from "@bitwarden/common/auth/services/account.service";
 import { DomainSettingsService } from "@bitwarden/common/autofill/services/domain-settings.service";
 import { I18nService } from "@bitwarden/common/platform/abstractions/i18n.service";
+import { Utils } from "@bitwarden/common/platform/misc/utils";
 import { CipherId, UserId } from "@bitwarden/common/types/guid";
 import { CipherArchiveService } from "@bitwarden/common/vault/abstractions/cipher-archive.service";
 import { CipherService } from "@bitwarden/common/vault/abstractions/cipher.service";
@@ -184,6 +185,32 @@ export class ItemMoreOptionsComponent {
 
   get favoriteText() {
     return this.cipher.favorite ? "unfavorite" : "favorite";
+  }
+
+  /**
+   * Fork patch: adds this login's sites to the never-offer-to-save list. The sync service
+   * carries the list to other devices through a secure note.
+   */
+  async neverOfferToSave() {
+    const cipher = await this.cipherService.getFullCipherView(this.cipher);
+    const hostnames = (cipher.login?.uris ?? [])
+      .map((u) => Utils.getHostname(u.uri))
+      .filter((h): h is string => !!h);
+    if (hostnames.length === 0) {
+      this.toastService.showToast({
+        variant: "warning",
+        message: "This item has no website",
+      });
+      return;
+    }
+    const current = (await firstValueFrom(this.domainSettingsService.neverDomains$)) ?? {};
+    const updated = { ...current };
+    hostnames.forEach((h) => (updated[h] = null));
+    await this.domainSettingsService.setNeverDomains(updated);
+    this.toastService.showToast({
+      variant: "success",
+      message: `Won't offer to save for ${hostnames.join(", ")}`,
+    });
   }
 
   async doAutofillAndSave() {

@@ -22,6 +22,7 @@ The web, desktop and CLI apps are untouched upstream code and are not supported 
 | No passkey | If no passkey is set up, sensitive actions fall back to the master password, which also opens SES. |
 | Server | Always bitwarden.com (US). The region and self-hosted selector is removed. |
 | Premium upsells | Upgrade badges, dialog, vault banner and settings callout are removed. Premium features stay unavailable on a non-premium account. |
+| Never offer to save | Item menu has **Never offer to save** for logins. The list syncs with the Android app through a secure note named `Moneta Never Offer To Save` (`autofill/services/never-save-sync.service.ts`). |
 | Settings | New **Sensitive actions passkey** section: status, **Test passkey** and **Add passkey**. |
 
 Fork changes are marked `Fork patch` in the code. Main files:

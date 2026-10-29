@@ -21,6 +21,11 @@
       <button type="button" bitMenuItem (click)="toggleFavorite()">
         {{ favoriteText | i18n }}
       </button>
+      @if (isLogin) {
+        <button type="button" bitMenuItem (click)="neverOfferToSave()">
+          Never offer to save
+        </button>
+      }
       @if (canEdit) {
         <button type="button" bitMenuItem (click)="edit()">
           {{ "edit" | i18n }}
