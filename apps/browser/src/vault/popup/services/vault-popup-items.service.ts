@@ -196,10 +196,16 @@ export class VaultPopupItemsService {
       ] => [vfo1Enabled ? ciphers : filterFunction(ciphers), searchText, userId],
     ),
     switchMap(
-      ([ciphers, searchText, userId]) =>
-        this.searchService.searchCiphers(userId, null, searchText, ciphers) as Promise<
-          PopupCipherViewLike[]
-        >,
+      async ([ciphers, searchText, userId]) => {
+        const results = (await this.searchService.searchCiphers(
+          userId,
+          null,
+          searchText,
+          ciphers,
+        )) as PopupCipherViewLike[];
+        // Fork patch: newest first when browsing; a search keeps its relevance order.
+        return searchText ? results : [...results].sort((a, b) => this.compareByRecency(a, b));
+      },
     ),
     shareReplay({ refCount: true, bufferSize: 1 }),
   );
@@ -412,8 +418,28 @@ export class VaultPopupItemsService {
       return 1;
     }
 
-    // If types are the same, then sort by last used then name
-    return this.cipherService.sortCiphersByLastUsedThenName(a, b);
+    // Fork patch: most recently used, added or edited first, then name.
+    return this.compareByRecency(a, b);
+  }
+
+  /**
+   * Fork patch: the latest of last used, edited and created time. Cheap enough to compute per
+   * comparison; the vault is a few hundred items.
+   * @private
+   */
+  private recency(c: CipherViewLike): number {
+    const times = [
+      c.localData?.lastUsedDate as number | undefined,
+      c.revisionDate ? new Date(c.revisionDate as unknown as string).getTime() : undefined,
+      c.creationDate ? new Date(c.creationDate as unknown as string).getTime() : undefined,
+    ].filter((t): t is number => typeof t === "number" && !isNaN(t));
+    return times.length ? Math.max(...times) : 0;
+  }
+
+  /** Fork patch: newest first, falling back to name so the order is stable. */
+  private compareByRecency(a: CipherViewLike, b: CipherViewLike): number {
+    const diff = this.recency(b) - this.recency(a);
+    return diff !== 0 ? diff : this.cipherService.getLocaleSortingFunction()(a, b);
   }
 }
 

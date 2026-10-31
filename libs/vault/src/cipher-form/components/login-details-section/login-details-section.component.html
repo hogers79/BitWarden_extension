@@ -45,19 +45,6 @@
           }
         </bit-hint>
       }
-      @if (
-        loginDetailsForm.controls.password.enabled &&
-        loginDetailsForm.controls.password.value?.length > 0
-      ) {
-        <button
-          type="button"
-          bitIconButton="bwi-check-circle"
-          bitSuffix
-          data-testid="check-password-button"
-          [label]="'checkPassword' | i18n"
-          [bitAction]="checkPassword"
-        ></button>
-      }
       @if (viewHiddenFields) {
         <button
           type="button"
