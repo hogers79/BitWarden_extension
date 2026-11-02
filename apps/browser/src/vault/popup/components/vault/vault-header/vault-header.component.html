@@ -5,6 +5,22 @@
   <div class="tw-relative">
     <button
       type="button"
+      bitIconButton="bwi-numbered-list"
+      [buttonType]="'primaryGhost'"
+      [bitMenuTriggerFor]="sortMenu"
+      label="Sort"
+    ></button>
+    <bit-menu #sortMenu>
+      @for (opt of sortOptions; track opt.mode) {
+        <button type="button" bitMenuItem (click)="setSort(opt.mode)">
+          {{ opt.label }}{{ (sortMode$ | async) === opt.mode ? " ✓" : "" }}
+        </button>
+      }
+    </bit-menu>
+  </div>
+  <div class="tw-relative">
+    <button
+      type="button"
       bitIconButton="bwi-sliders"
       [buttonType]="'primaryGhost'"
       [bitDisclosureTriggerFor]="disclosureRef"

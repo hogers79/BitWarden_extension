@@ -10,9 +10,11 @@ import {
   DisclosureComponent,
   DisclosureTriggerForDirective,
   IconButtonModule,
+  MenuModule,
 } from "@bitwarden/components";
 
 import { runInsideAngular } from "../../../../../platform/browser/run-inside-angular.operator";
+import { VaultPopupItemsService, VaultSortMode } from "../../../services/vault-popup-items.service";
 import { VaultPopupListFiltersService } from "../../../services/vault-popup-list-filters.service";
 import { VaultListFiltersComponent } from "../vault-list-filters/vault-list-filters.component";
 import { VaultSearchComponent } from "../vault-search/vault-search.component";
@@ -30,6 +32,7 @@ import { VaultSearchComponent } from "../vault-search/vault-search.component";
     DisclosureTriggerForDirective,
     CommonModule,
     JslibModule,
+    MenuModule,
   ],
 })
 export class VaultHeaderComponent {
@@ -66,6 +69,19 @@ export class VaultHeaderComponent {
       return this.i18nService.t("filterAppliedPlural", numberOfFilters);
     }),
   );
+
+  private vaultPopupItemsService = inject(VaultPopupItemsService);
+
+  protected sortMode$ = this.vaultPopupItemsService.sortMode$;
+  protected sortOptions: { mode: VaultSortMode; label: string }[] = [
+    { mode: "alpha", label: "Alphabetical" },
+    { mode: "used", label: "Recently used" },
+    { mode: "created", label: "Created" },
+  ];
+
+  protected setSort(mode: VaultSortMode) {
+    this.sortMode$.next(mode);
+  }
 
   constructor(
     private vaultPopupListFiltersService: VaultPopupListFiltersService,

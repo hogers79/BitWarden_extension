@@ -21,7 +21,11 @@ export type ToastOptions = {
 export class ToastService {
   constructor(private toastrService: ToastrService) {}
 
+  /** Fork patch: only error toasts are shown. Success, info and warning toasts are switched off. */
   showToast(options: ToastOptions): void {
+    if (options.variant !== "error") {
+      return;
+    }
     const toastrConfig: Partial<IndividualConfig> = {
       payload: {
         message: options.message,

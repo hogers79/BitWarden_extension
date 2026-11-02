@@ -58,7 +58,7 @@ export class BrowserSensitiveActionVerifier implements SensitiveActionVerifier {
     return await this.webAuthnPrfUnlockService.isPrfUnlockAvailable(userId);
   }
 
-  async verify(forceCheck = false): Promise<boolean | null> {
+  async isActive(): Promise<boolean> {
     const userId = await firstValueFrom(this.accountService.activeAccount$.pipe(getUserId));
 
     const activatedAt = await firstValueFrom(
@@ -71,7 +71,13 @@ export class BrowserSensitiveActionVerifier implements SensitiveActionVerifier {
       minutes != null && SES_DURATION_OPTIONS_MINUTES.includes(minutes)
         ? minutes * 60 * 1000
         : SES_DURATION_MS;
-    if (!forceCheck && activatedAt != null && Date.now() - activatedAt < durationMs) {
+    return activatedAt != null && Date.now() - activatedAt < durationMs;
+  }
+
+  async verify(forceCheck = false): Promise<boolean | null> {
+    const userId = await firstValueFrom(this.accountService.activeAccount$.pipe(getUserId));
+
+    if (!forceCheck && (await this.isActive())) {
       return true;
     }
 

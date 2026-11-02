@@ -1,6 +1,7 @@
 import {
   booleanAttribute,
   Directive,
+  ElementRef,
   HostBinding,
   HostListener,
   Input,
@@ -21,6 +22,7 @@ import {
 import { MenuItemComponent, BitIconButtonComponent } from "@bitwarden/components";
 
 import { CopyAction, CopyCipherFieldService } from "../services/copy-cipher-field.service";
+import { PasswordRepromptService } from "../services/password-reprompt.service";
 
 /**
  * Directive to copy a specific field from a cipher on click. Uses the `CopyCipherFieldService` to
@@ -68,6 +70,8 @@ export class CopyCipherFieldDirective implements OnChanges {
     private copyCipherFieldService: CopyCipherFieldService,
     private accountService: AccountService,
     private cipherService: CipherService,
+    private elementRef: ElementRef<HTMLElement>,
+    @Optional() private passwordRepromptService?: PasswordRepromptService,
     @Optional() private menuItemComponent?: MenuItemComponent,
     @Optional() private iconButtonComponent?: BitIconButtonComponent,
   ) {}
@@ -91,8 +95,22 @@ export class CopyCipherFieldDirective implements OnChanges {
     if (this.hostDisabled) {
       return;
     }
-    const value = await this.getValueToCopy();
-    await this.copyCipherFieldService.copy(value ?? "", this.action, this.cipher);
+    // Fork patch: while a sensitive copy waits for the unlock check, the card turns red.
+    const card = this.elementRef.nativeElement.closest("bit-item") as HTMLElement | null;
+    const pending = this.passwordRepromptService?.gatePending$.subscribe((waiting) => {
+      if (card) {
+        card.style.backgroundColor = waiting ? "rgba(220, 38, 38, 0.45)" : "";
+      }
+    });
+    try {
+      const value = await this.getValueToCopy();
+      await this.copyCipherFieldService.copy(value ?? "", this.action, this.cipher);
+    } finally {
+      pending?.unsubscribe();
+      if (card) {
+        card.style.backgroundColor = "";
+      }
+    }
   }
 
   async ngOnChanges() {

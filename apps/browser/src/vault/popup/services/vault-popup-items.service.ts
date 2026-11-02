@@ -3,6 +3,7 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import {
   combineLatest,
   debounceTime,
+  BehaviorSubject,
   distinctUntilChanged,
   filter,
   map,
@@ -45,6 +46,9 @@ import { PopupCipherViewLike } from "../views/popup-cipher.view";
 import { VaultPopupAutofillService } from "./vault-popup-autofill.service";
 import { MY_VAULT_ID, VaultPopupListFiltersService } from "./vault-popup-list-filters.service";
 import { VaultPopupListTableFiltersService } from "./vault-popup-list-table-filters.service";
+
+/** Fork patch: orders offered by the Sort menu. */
+export type VaultSortMode = "alpha" | "used" | "created";
 
 /**
  * Service for managing the various item lists on the new Vault tab in the browser popup.
@@ -181,22 +185,27 @@ export class VaultPopupItemsService {
    */
   private _hasSearchText = this._effectiveSearchText$.pipe(map((text) => text !== ""));
 
+  /** Fork patch: list order chosen from the Sort menu. */
+  readonly sortMode$ = new BehaviorSubject<VaultSortMode>("used");
+
   private _filteredCipherList$: Observable<PopupCipherViewLike[]> = combineLatest([
     this._activeCipherList$,
     this._effectiveSearchText$,
     this.vaultPopupListFiltersService.filterFunction$,
     getUserId(this.accountService.activeAccount$),
     this.configService.getFeatureFlag$(FeatureFlag.VFO1Foundation),
+    this.sortMode$,
   ]).pipe(
     map(
-      ([ciphers, searchText, filterFunction, userId, vfo1Enabled]): [
+      ([ciphers, searchText, filterFunction, userId, vfo1Enabled, sortMode]): [
         PopupCipherViewLike[],
         string,
         UserId,
-      ] => [vfo1Enabled ? ciphers : filterFunction(ciphers), searchText, userId],
+        VaultSortMode,
+      ] => [vfo1Enabled ? ciphers : filterFunction(ciphers), searchText, userId, sortMode],
     ),
     switchMap(
-      async ([ciphers, searchText, userId]) => {
+      async ([ciphers, searchText, userId, sortMode]) => {
         const results = (await this.searchService.searchCiphers(
           userId,
           null,
@@ -204,7 +213,7 @@ export class VaultPopupItemsService {
           ciphers,
         )) as PopupCipherViewLike[];
         // Fork patch: newest first when browsing; a search keeps its relevance order.
-        return searchText ? results : [...results].sort((a, b) => this.compareByRecency(a, b));
+        return searchText ? results : [...results].sort((a, b) => this.compareBySortMode(a, b, sortMode));
       },
     ),
     shareReplay({ refCount: true, bufferSize: 1 }),
@@ -434,6 +443,21 @@ export class VaultPopupItemsService {
       c.creationDate ? new Date(c.creationDate as unknown as string).getTime() : undefined,
     ].filter((t): t is number => typeof t === "number" && !isNaN(t));
     return times.length ? Math.max(...times) : 0;
+  }
+
+  /** Fork patch: orders by the chosen sort mode, always falling back to name. */
+  private compareBySortMode(a: CipherViewLike, b: CipherViewLike, mode: VaultSortMode): number {
+    const byName = this.cipherService.getLocaleSortingFunction();
+    if (mode === "alpha") {
+      return byName(a, b);
+    }
+    if (mode === "created") {
+      const t = (c: CipherViewLike) =>
+        c.creationDate ? new Date(c.creationDate as unknown as string).getTime() || 0 : 0;
+      return t(b) - t(a) || byName(a, b);
+    }
+    const used = (c: CipherViewLike) => (c.localData?.lastUsedDate as number | undefined) ?? 0;
+    return used(b) - used(a) || this.compareByRecency(a, b);
   }
 
   /** Fork patch: newest first, falling back to name so the order is stable. */

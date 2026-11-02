@@ -24,6 +24,7 @@ import { PremiumUpgradePromptService } from "@bitwarden/common/vault/abstraction
 import { CipherType, toCipherType } from "@bitwarden/common/vault/enums";
 import { CipherView } from "@bitwarden/common/vault/models/view/cipher.view";
 import { CipherAuthorizationService } from "@bitwarden/common/vault/services/cipher-authorization.service";
+import { CIPHER_MENU_ITEMS } from "@bitwarden/common/vault/types/cipher-menu-items";
 import { AddEditCipherInfo } from "@bitwarden/common/vault/types/add-edit-cipher-info";
 import {
   AsyncActionsModule,
@@ -206,6 +207,18 @@ export class AddEditComponent implements OnInit, OnDestroy {
   routeAfterDeletion: ROUTES_AFTER_EDIT_DELETION = "/tabs/vault";
   protected saveAndFillEnabled = false;
   private fillOnSuccessfulSave = false;
+
+  protected readonly typeItems = CIPHER_MENU_ITEMS;
+
+  /** Fork patch: switching type reloads the blank form for that type. */
+  protected onTypeChange(type: CipherType) {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { type: type.toString() },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
+  }
 
   get loading() {
     return this.config == null;

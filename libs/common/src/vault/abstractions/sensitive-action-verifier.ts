@@ -17,6 +17,9 @@ export abstract class SensitiveActionVerifier {
    */
   abstract verifyOnce(): Promise<boolean | null>;
 
+  /** Whether SES is already open, so a sensitive action will not ask for a check. */
+  abstract isActive(): Promise<boolean>;
+
   /** Whether a passkey check is available on this machine. */
   abstract isPasskeyAvailable(): Promise<boolean>;
 

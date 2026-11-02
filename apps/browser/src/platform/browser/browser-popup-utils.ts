@@ -175,9 +175,21 @@ export default class BrowserPopupUtils {
         }
       : {};
 
+    // Fork patch: full screen height, same width, centred on the screen (when a screen is known).
+    const scr = typeof screen !== "undefined" ? (screen as any) : null;
+    const centredOptions: Partial<chrome.windows.CreateData> =
+      scr && scr.availHeight > 0
+        ? {
+            height: scr.availHeight,
+            top: scr.availTop ?? 0,
+            left: Math.round((scr.availLeft ?? 0) + (scr.availWidth - popupWidth) / 2),
+          }
+        : {};
+
     const popoutWindowOptions = {
       ...defaultPopoutWindowOptions,
       ...positionOptions,
+      ...centredOptions,
       ...windowOptions,
       url: BrowserPopupUtils.buildPopoutUrl(extensionUrlPath, singleActionKey),
     };

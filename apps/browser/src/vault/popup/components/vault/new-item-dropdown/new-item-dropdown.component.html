@@ -1,9 +1,10 @@
-@if (useNewItemDialog()) {
+<!-- Fork patch: New goes straight to a Login form; the type is chosen on that page. -->
+@if (true) {
   <button
     bitButton
     buttonType="primary"
     type="button"
-    (click)="navigateToNewItemPage()"
+    (click)="navigateToNewLogin()"
     [disabled]="!canCreateCipher()"
     [bitTooltip]="!canCreateCipher() ? ('organizationIsDeactivated' | i18n) : ''"
     startIcon="bwi-plus"

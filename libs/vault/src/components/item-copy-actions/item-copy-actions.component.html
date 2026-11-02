@@ -49,41 +49,38 @@
       ></button>
     </bit-item-action>
   } @else {
-    <bit-item-action>
-      @if (singleCopyableLogin) {
+    <!-- Fork patch: two copy buttons, password first (key) then username (profile). -->
+    @if (_cipher.viewPassword) {
+      <bit-item-action>
         <button
           type="button"
-          bitIconButton="bwi-clone"
+          bitIconButton="bwi-key"
           size="small"
-          [label]="singleCopyableLogin.key | i18n"
-          [appCopyField]="singleCopyableLogin.field"
+          appCopyField="password"
           [cipher]="_cipher"
           [disabled]="disabled()"
+          [label]="
+            CipherViewLikeUtils.hasCopyableValue(_cipher, 'password')
+              ? ('copyPassword' | i18n)
+              : ('noPassword' | i18n)
+          "
         ></button>
-      }
-      @if (!singleCopyableLogin) {
-        <button
-          type="button"
-          bitIconButton="bwi-clone"
-          size="small"
-          [label]="hasLoginValues ? ('copy' | i18n) : ('noDetailsToCopy' | i18n)"
-          [disabled]="disabled() || !hasLoginValues"
-          [bitMenuTriggerFor]="loginOptions"
-        ></button>
-        <bit-menu #loginOptions>
-          <button type="button" bitMenuItem appCopyField="username" [cipher]="_cipher">
-            {{ "copyUsername" | i18n }}
-          </button>
-          @if (_cipher.viewPassword) {
-            <button type="button" bitMenuItem appCopyField="password" [cipher]="_cipher">
-              {{ "copyPassword" | i18n }}
-            </button>
-          }
-          <button type="button" bitMenuItem appCopyField="totp" [cipher]="_cipher">
-            {{ "copyVerificationCode" | i18n }}
-          </button>
-        </bit-menu>
-      }
+      </bit-item-action>
+    }
+    <bit-item-action>
+      <button
+        type="button"
+        bitIconButton="bwi-user"
+        size="small"
+        appCopyField="username"
+        [cipher]="_cipher"
+        [disabled]="disabled()"
+        [label]="
+          CipherViewLikeUtils.hasCopyableValue(_cipher, 'username')
+            ? ('copyUsername' | i18n)
+            : ('noUsername' | i18n)
+        "
+      ></button>
     </bit-item-action>
   }
 }

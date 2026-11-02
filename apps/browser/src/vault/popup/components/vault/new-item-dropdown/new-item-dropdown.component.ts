@@ -96,7 +96,8 @@ export class NewItemDropdownComponent implements OnInit {
 
     // When a Login Cipher is created and the extension is not popped out,
     // pass along the uri and name
-    if (!poppedOut && type === CipherType.Login && this.tab) {
+    // Fork patch: only real web pages are prefilled; Curia's own pages (homepage, new tab) are not.
+    if (!poppedOut && type === CipherType.Login && this.tab && /^https?:/i.test(this.tab.url ?? "")) {
       loginDetails.prefillNameAndURIFromTab = "true";
     }
 
@@ -111,6 +112,12 @@ export class NewItemDropdownComponent implements OnInit {
 
   openFolderDialog() {
     AddEditFolderDialogComponent.open(this.dialogService);
+  }
+
+  navigateToNewLogin(): void {
+    void this.router.navigate(["/add-cipher"], {
+      queryParams: this.buildQueryParams(CipherType.Login),
+    });
   }
 
   navigateToNewItemPage(): void {
