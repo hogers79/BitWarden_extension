@@ -229,48 +229,19 @@
           </legend>
         </bit-section-header>
         <bit-card>
-          <bit-hint class="tw-mb-6 tw-text-sm">
-            {{ "enableAutoFillOnPageLoadDesc" | i18n }}
-            <span
-              ><b>{{ "warningCapitalized" | i18n }}</b
-              >: {{ "experimentalFeature" | i18n }}</span
-            >
-            <a
-              bitLink
-              class="tw-no-underline"
-              href="https://bitwarden.com/help/auto-fill-browser/"
-              rel="noreferrer"
-              target="_blank"
-            >
-              {{ "learnMoreAboutAutofillOnPageLoadLinkText" | i18n }}
-            </a>
-          </bit-hint>
           <bit-form-control>
-            <input
-              formControlName="autofillOnPageLoad"
-              bitCheckbox
-              id="autofillOnPageLoad"
-              type="checkbox"
-            />
+            <bit-switch formControlName="autofillOnPageLoad" id="autofillOnPageLoad"></bit-switch>
             <bit-label for="autofillOnPageLoad">{{ "enableAutoFillOnPageLoad" | i18n }}</bit-label>
+            <bit-hint class="tw-text-sm">{{ "autofillOnPageLoadSwitchHint" | i18n }}</bit-hint>
             <bit-hint class="tw-text-sm" *ngIf="autofillOnPageLoadFromPolicy$ | async">{{
               "enterprisePolicyRequirementsApplied" | i18n
             }}</bit-hint>
           </bit-form-control>
-          <bit-form-field disableMargin>
-            <bit-label for="defaultAutofill">{{ "defaultAutoFillOnPageLoad" | i18n }}</bit-label>
-            <bit-select formControlName="defaultAutofill" bitInput id="defaultAutofill">
-              <bit-option
-                *ngFor="let option of autofillOnPageLoadOptions"
-                [label]="option.name"
-                [value]="option.value"
-              >
-              </bit-option>
-            </bit-select>
-            <bit-hint class="tw-text-sm">
-              {{ "defaultAutoFillOnPageLoadDesc" | i18n }}
-            </bit-hint>
-          </bit-form-field>
+          <bit-form-control disableMargin>
+            <bit-switch formControlName="autofillAndLogin" id="autofillAndLogin"></bit-switch>
+            <bit-label for="autofillAndLogin">{{ "autofillAndLogin" | i18n }}</bit-label>
+            <bit-hint class="tw-text-sm">{{ "autofillAndLoginHint" | i18n }}</bit-hint>
+          </bit-form-control>
         </bit-card>
       </form>
     </bit-section>

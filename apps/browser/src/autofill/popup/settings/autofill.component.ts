@@ -60,6 +60,7 @@ import {
   SectionComponent,
   SectionHeaderComponent,
   SelectModule,
+  SwitchComponent,
   TypographyModule,
 } from "@bitwarden/components";
 import { AdvancedUriOptionDialogComponent } from "@bitwarden/vault";
@@ -95,6 +96,7 @@ import { FillAssistPopoverComponent } from "./fill-assist-popover/fill-assist-po
     PopupPageComponent,
     RouterModule,
     SectionComponent,
+    SwitchComponent,
     SectionHeaderComponent,
     SelectModule,
     TypographyModule,
@@ -139,6 +141,7 @@ export class AutofillComponent implements OnInit {
   protected autofillOnPageLoadForm = new FormGroup({
     autofillOnPageLoad: new FormControl(),
     defaultAutofill: new FormControl(),
+    autofillAndLogin: new FormControl(),
   });
 
   /**
@@ -311,7 +314,19 @@ export class AutofillComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
         void this.autofillSettingsService.setAutofillOnPageLoad(value);
-        this.enableDefaultAutofillControl(value);
+        // Moneta: one on/off switch; the per-item default follows it
+        void this.autofillSettingsService.setAutofillOnPageLoadDefault(!!value);
+      });
+
+    this.autofillOnPageLoadForm.controls.autofillAndLogin.patchValue(
+      await firstValueFrom(this.autofillSettingsService.autofillAndLogin$),
+      { emitEvent: false },
+    );
+
+    this.autofillOnPageLoadForm.controls.autofillAndLogin.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        void this.autofillSettingsService.setAutofillAndLogin(!!value);
       });
 
     this.autofillOnPageLoadForm.controls.defaultAutofill.valueChanges

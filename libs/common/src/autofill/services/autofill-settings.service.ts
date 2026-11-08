@@ -34,6 +34,11 @@ const AUTOFILL_ON_PAGE_LOAD_DEFAULT = new UserKeyDefinition(
   },
 );
 
+const AUTOFILL_AND_LOGIN = new UserKeyDefinition(AUTOFILL_SETTINGS_DISK, "autofillAndLogin", {
+  deserializer: (value: boolean) => value ?? false,
+  clearOn: [],
+});
+
 const AUTOFILL_ON_PAGE_LOAD_CALLOUT_DISMISSED = new UserKeyDefinition(
   AUTOFILL_SETTINGS_DISK,
   "autofillOnPageLoadCalloutIsDismissed",
@@ -144,6 +149,8 @@ export abstract class AutofillSettingsServiceAbstraction {
   setAutofillOnPageLoad: (newValue: boolean) => Promise<void>;
   autofillOnPageLoadDefault$: Observable<boolean>;
   setAutofillOnPageLoadDefault: (newValue: boolean) => Promise<void>;
+  autofillAndLogin$: Observable<boolean>;
+  setAutofillAndLogin: (newValue: boolean) => Promise<void>;
   autofillOnPageLoadCalloutIsDismissed$: Observable<boolean>;
   setAutofillOnPageLoadCalloutIsDismissed: (newValue: boolean) => Promise<void>;
   activateAutofillOnPageLoadFromPolicy$: Observable<boolean>;
@@ -179,6 +186,9 @@ export class AutofillSettingsService implements AutofillSettingsServiceAbstracti
 
   private autofillOnPageLoadDefaultState: ActiveUserState<boolean>;
   readonly autofillOnPageLoadDefault$: Observable<boolean>;
+
+  private autofillAndLoginState: ActiveUserState<boolean>;
+  readonly autofillAndLogin$: Observable<boolean>;
 
   private autofillOnPageLoadCalloutIsDismissedState: ActiveUserState<boolean>;
   readonly autofillOnPageLoadCalloutIsDismissed$: Observable<boolean>;
@@ -238,6 +248,9 @@ export class AutofillSettingsService implements AutofillSettingsServiceAbstracti
     this.autofillOnPageLoadDefault$ = this.autofillOnPageLoadDefaultState.state$.pipe(
       map((x) => x ?? true),
     );
+
+    this.autofillAndLoginState = this.stateProvider.getActive(AUTOFILL_AND_LOGIN);
+    this.autofillAndLogin$ = this.autofillAndLoginState.state$.pipe(map((x) => x ?? false));
 
     this.autofillOnPageLoadCalloutIsDismissedState = this.stateProvider.getActive(
       AUTOFILL_ON_PAGE_LOAD_CALLOUT_DISMISSED,
@@ -350,6 +363,10 @@ export class AutofillSettingsService implements AutofillSettingsServiceAbstracti
 
   async setAutofillOnPageLoadDefault(newValue: boolean): Promise<void> {
     await this.autofillOnPageLoadDefaultState.update(() => newValue);
+  }
+
+  async setAutofillAndLogin(newValue: boolean): Promise<void> {
+    await this.autofillAndLoginState.update(() => newValue);
   }
 
   async setAutofillOnPageLoadCalloutIsDismissed(newValue: boolean): Promise<void> {

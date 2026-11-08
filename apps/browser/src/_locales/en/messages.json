@@ -2181,7 +2181,16 @@
     "description": "Overlay appearance select option for showing the field on click of the overlay icon"
   },
   "enableAutoFillOnPageLoadSectionTitle": {
-    "message": "Autofill on page load"
+    "message": "Autofill"
+  },
+  "autofillOnPageLoadSwitchHint": {
+    "message": "Fills a login automatically when the page loads."
+  },
+  "autofillAndLogin": {
+    "message": "Autofill and log in"
+  },
+  "autofillAndLoginHint": {
+    "message": "After filling a login, also presses the site's log in button."
   },
   "enableAutoFillOnPageLoad": {
     "message": "Autofill on page load"

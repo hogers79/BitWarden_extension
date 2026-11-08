@@ -91,6 +91,7 @@ const loginIdentifierQualifierPriority: string[] = [
 ];
 
 export default class AutofillService implements AutofillServiceInterface {
+  private static autoSubmitAttempts = new Map<string, number>();
   private openVaultItemPasswordRepromptPopout = openVaultItemPasswordRepromptPopout;
   private openPasswordRepromptPopoutDebounce?: ReturnType<typeof setTimeout>;
   private currentlyOpeningPasswordRepromptPopout = false;
@@ -498,6 +499,29 @@ export default class AutofillService implements AutofillServiceInterface {
 
     const canUseTotp = canAccessPremium || options.cipher.organizationUseTotp;
 
+    // Moneta: global "Auto-fill and log in" setting submits the form after filling a login
+    // It only submits once per tab and site within 5 minutes; a repeat (for example after a
+    // failed login reloads the page) fills only, so a person has to step in.
+    let submitLogin = options.autoSubmitLogin;
+    if (
+      !submitLogin &&
+      options.cipher.type === CipherType.Login &&
+      (await firstValueFrom(this.autofillSettingsService.autofillAndLogin$))
+    ) {
+      let host = tabUrl;
+      try {
+        host = new URL(tabUrl).hostname;
+      } catch {
+        // keep the raw url
+      }
+      const key = `${tab.id}|${host}`;
+      const last = AutofillService.autoSubmitAttempts.get(key);
+      if (last === undefined || Date.now() - last > 5 * 60 * 1000) {
+        AutofillService.autoSubmitAttempts.set(key, Date.now());
+        submitLogin = true;
+      }
+    }
+
     let didAutofill = false;
     await Promise.all(
       options.pageDetails.map(async (pd) => {
@@ -519,7 +543,7 @@ export default class AutofillService implements AutofillServiceInterface {
           onlyEmptyFields: options.onlyEmptyFields || false,
           fillNewPassword: options.fillNewPassword || false,
           allowTotpAutofill: options.allowTotpAutofill || false,
-          autoSubmitLogin: options.autoSubmitLogin || false,
+          autoSubmitLogin: submitLogin || false,
           cipher: options.cipher,
           canAccessTotp: canUseTotp,
           tabUrl,
@@ -555,7 +579,7 @@ export default class AutofillService implements AutofillServiceInterface {
         void BrowserApi.tabSendMessage(
           tab,
           {
-            command: options.autoSubmitLogin ? "triggerAutoSubmitLogin" : "fillForm",
+            command: submitLogin ? "triggerAutoSubmitLogin" : "fillForm",
             fillScript: fillScript,
             url: tab.url,
             pageDetailsUrl: pd.details.url,
