@@ -94,7 +94,10 @@
       }
 
       <cdk-virtual-scroll-viewport [itemSize]="itemHeight$ | async" bitScrollLayout>
-        <bit-item *cdkVirtualFor="let cipher of group.ciphers" class="tw-group/vault-item">
+        <bit-item
+          *cdkVirtualFor="let cipher of group.ciphers"
+          class="tw-group/vault-item [&_bit-item-action_.bwi]:!tw-text-[14px]"
+        >
           <button
             bit-item-content
             type="button"
@@ -120,10 +123,17 @@
                   [appA11yTitle]="orgIconTooltip(cipher)"
                 ></i>
               }
+              @if (CipherViewLikeUtils.hasFido2Credentials(cipher)) {
+                <bit-icon
+                  name="bwi-passkey"
+                  class="bwi-sm tw-text-primary-600"
+                  [appA11yTitle]="'typePasskey' | i18n"
+                ></bit-icon>
+              }
               @if (CipherViewLikeUtils.hasAttachments(cipher)) {
                 <bit-icon
                   name="bwi-paperclip"
-                  class="bwi-sm"
+                  class="bwi-sm !tw-text-[12px]"
                   [appA11yTitle]="'attachments' | i18n"
                 ></bit-icon>
               }

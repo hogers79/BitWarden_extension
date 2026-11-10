@@ -41,6 +41,7 @@ const password: GeneratorMetadata<PasswordGeneratorSettings> = deepFreeze({
         target: "object",
         format: "plain",
         classifier: new PublicClassifier<PasswordGeneratorSettings>([
+          "memorable",
           "length",
           "ambiguous",
           "uppercase",
@@ -54,6 +55,7 @@ const password: GeneratorMetadata<PasswordGeneratorSettings> = deepFreeze({
         ]),
         state: GENERATOR_DISK,
         initial: {
+          memorable: false,
           length: 14,
           ambiguous: true,
           uppercase: true,

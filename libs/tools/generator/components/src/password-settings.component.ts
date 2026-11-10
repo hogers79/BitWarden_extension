@@ -17,12 +17,27 @@ import {
   ValidatorFn,
   Validators,
 } from "@angular/forms";
-import { takeUntil, Subject, map, filter, tap, skip, ReplaySubject, withLatestFrom } from "rxjs";
+import {
+  takeUntil,
+  Subject,
+  map,
+  filter,
+  tap,
+  skip,
+  ReplaySubject,
+  withLatestFrom,
+  debounceTime,
+} from "rxjs";
 
 import { JslibModule } from "@bitwarden/angular/jslib.module";
 import { Account } from "@bitwarden/common/auth/abstractions/account.service";
 import { I18nService } from "@bitwarden/common/platform/abstractions/i18n.service";
+import { CipherService } from "@bitwarden/common/vault/abstractions/cipher.service";
+import { CipherType, SecureNoteType } from "@bitwarden/common/vault/enums";
+import { CipherView } from "@bitwarden/common/vault/models/view/cipher.view";
+import { SecureNoteView } from "@bitwarden/common/vault/models/view/secure-note.view";
 import {
+  SwitchComponent,
   SectionComponent,
   SectionHeaderComponent,
   BaseCardDirective,
@@ -40,7 +55,11 @@ import { I18nPipe } from "@bitwarden/ui-common";
 
 import { hasRangeOfValues } from "./util";
 
+/** Same name the Android app reads, so the keyboard's Generate button uses these defaults. */
+const GENERATOR_DEFAULTS_NOTE = "Moneta Generator Defaults";
+
 const Controls = Object.freeze({
+  memorable: "memorable",
   length: "length",
   uppercase: "uppercase",
   lowercase: "lowercase",
@@ -66,6 +85,7 @@ const Controls = Object.freeze({
     CardComponent,
     FormFieldModule,
     CheckboxModule,
+    SwitchComponent,
     AsyncPipe,
     JslibModule,
     I18nPipe,
@@ -81,6 +101,7 @@ export class PasswordSettingsComponent implements OnInit, OnChanges, OnDestroy {
     private formBuilder: FormBuilder,
     private generatorService: CredentialGeneratorService,
     private i18nService: I18nService,
+    private cipherService: CipherService,
   ) {}
 
   /** Binds the component to a specific user's settings.
@@ -128,6 +149,7 @@ export class PasswordSettingsComponent implements OnInit, OnChanges, OnDestroy {
   readonly onUpdated = new EventEmitter<PasswordGenerationOptions>();
 
   protected settings = this.formBuilder.group({
+    [Controls.memorable]: [false],
     [Controls.length]: [0],
     [Controls.uppercase]: [false],
     [Controls.lowercase]: [false],
@@ -287,6 +309,12 @@ export class PasswordSettingsComponent implements OnInit, OnChanges, OnDestroy {
     // skip the first emission because it's the initial value, not an update.
     settings.pipe(skip(1), takeUntil(this.destroyed$)).subscribe(this.onUpdated);
 
+    // Fork patch: share these defaults with the other devices and the keyboard through an
+    // encrypted note in the vault. The extension is the only place they are edited.
+    settings
+      .pipe(skip(1), debounceTime(1500), takeUntil(this.destroyed$))
+      .subscribe((value) => void this.publishDefaults(value));
+
     // now that outputs are set up, connect inputs
     this.saveSettings
       .pipe(
@@ -301,6 +329,50 @@ export class PasswordSettingsComponent implements OnInit, OnChanges, OnDestroy {
         takeUntil(this.destroyed$),
       )
       .subscribe(settings);
+  }
+
+  private async publishDefaults(value: PasswordGenerationOptions) {
+    try {
+      const userId = this.account?.id;
+      if (userId == null) {
+        return;
+      }
+      const v = value as any;
+      const body = JSON.stringify({
+        memorable: !!v.memorable,
+        length: v.length,
+        uppercase: !!v.uppercase,
+        lowercase: !!v.lowercase,
+        number: !!v.number,
+        special: !!v.special,
+        minNumber: v.minNumber ?? 0,
+        minSpecial: v.minSpecial ?? 0,
+        ambiguous: v.ambiguous !== false,
+      });
+      const ciphers = await this.cipherService.getAllDecrypted(userId);
+      const note = ciphers.find(
+        (c) =>
+          c.type === CipherType.SecureNote &&
+          c.name === GENERATOR_DEFAULTS_NOTE &&
+          c.deletedDate == null,
+      );
+      if (note != null) {
+        if ((note.notes ?? "").trim() !== body) {
+          note.notes = body;
+          await this.cipherService.updateWithServer(note, userId);
+        }
+      } else {
+        const created = new CipherView();
+        created.type = CipherType.SecureNote;
+        created.name = GENERATOR_DEFAULTS_NOTE;
+        created.notes = body;
+        created.secureNote = new SecureNoteView();
+        created.secureNote.type = SecureNoteType.Generic;
+        await this.cipherService.createWithServer(created, userId);
+      }
+    } catch {
+      // Sharing is best effort; the local setting has already been saved.
+    }
   }
 
   private saveSettings = new Subject<string>();

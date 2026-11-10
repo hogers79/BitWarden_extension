@@ -1,6 +1,9 @@
 /** Settings format for password credential generation.
  */
 export type PasswordGeneratorSettings = {
+  /** Fork patch: `true` to generate word-1234-word-word-word instead of random characters. */
+  memorable?: boolean;
+
   /** The length of the password selected by the user */
   length?: number;
 

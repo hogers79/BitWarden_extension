@@ -2197,6 +2197,12 @@
   "autofillOnPageLoadSwitchHint": {
     "message": "Fills a login automatically when the page loads."
   },
+  "memorableStyle": {
+    "message": "Memorable style"
+  },
+  "memorableStyleHint": {
+    "message": "Four words and four digits, like people-4874-card-Turbine-lamp, with one word capitalised. Your phone and keyboard use this style too."
+  },
   "autofillAndLogin": {
     "message": "Autofill and log in"
   },
