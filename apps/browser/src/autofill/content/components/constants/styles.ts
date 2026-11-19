@@ -58,7 +58,7 @@ const lightTheme = {
     alt3: `rgba(26, 65, 172)`,
     alt4: `rgba(2, 15, 102)`,
   },
-  brandLogo: `rgba(23, 93, 220)`,
+  brandLogo: `rgba(217, 169, 58)`,
   passwordSpecial: `rgba(184, 0, 23)`,
   passwordNumber: `rgba(20, 82, 193)`,
 };

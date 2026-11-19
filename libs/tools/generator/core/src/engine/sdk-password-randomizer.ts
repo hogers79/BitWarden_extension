@@ -4,6 +4,8 @@ import {
   PasswordGeneratorRequest,
 } from "@bitwarden/sdk-internal";
 
+import { EFFLongWordList } from "@bitwarden/common/platform/misc/wordlist";
+
 import { Type } from "../metadata";
 import {
   CredentialGenerator,
@@ -82,21 +84,18 @@ function secureInt(max: number): number {
   return buffer[0] % max;
 }
 
+/** Fork patch: the EFF long list reduced to words of exactly four letters. */
+const MEMORABLE_WORDS: string[] = EFFLongWordList.filter((w) => /^[a-z]{4}$/.test(w));
+
 /**
- * Fork patch: word-1234-word-word-word, with one of the four words capitalised. The words come
- * from the SDK's passphrase generator; the digits and the capital come from the browser's secure
- * random source.
+ * Fork patch: word-1234-word-word-word, every word exactly four letters, with one of the four
+ * words capitalised. Words, digits and the capital all come from the browser's secure random
+ * source. Entropy: 4 x log2(467) + 2 + 4 x log2(10) = about 50.8 bits.
  */
-async function generateMemorable(client: PasswordManagerClient): Promise<string> {
-  const phrase = await client.generator().passphrase({
-    numWords: 4,
-    wordSeparator: "-",
-    capitalize: false,
-    includeNumber: false,
-  });
-  const words = phrase.split("-").filter((w) => w.length > 0);
-  if (words.length !== 4) {
-    throw new Error("Unexpected passphrase from generator.");
+async function generateMemorable(_client: PasswordManagerClient): Promise<string> {
+  const words: string[] = [];
+  for (let i = 0; i < 4; i++) {
+    words.push(MEMORABLE_WORDS[secureInt(MEMORABLE_WORDS.length)]);
   }
   const capital = secureInt(4);
   words[capital] = words[capital].charAt(0).toUpperCase() + words[capital].slice(1);

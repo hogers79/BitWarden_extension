@@ -21,6 +21,7 @@ import {
   map,
   ReplaySubject,
   Subject,
+  take,
   takeUntil,
   withLatestFrom,
 } from "rxjs";
@@ -226,7 +227,8 @@ export class PasswordGeneratorComponent implements OnInit, OnChanges, OnDestroy 
     this.generatorService
       .algorithms$("password", { account$: this.account$ })
       .pipe(
-        map((algorithms) => this.toOptions(algorithms)),
+        // Fork patch: passphrase is hidden; only the password generator is offered
+        map((algorithms) => this.toOptions(algorithms.filter((a) => a.id !== "passphrase"))),
         takeUntil(this.destroyed),
       )
       .subscribe(this.passwordOptions$);
@@ -275,6 +277,15 @@ export class PasswordGeneratorComponent implements OnInit, OnChanges, OnDestroy 
 
     // assume the last-visible generator algorithm is the user's preferred one
     const preferences = await this.generatorService.preferences({ account$: this.account$ });
+
+    // Fork patch: a saved passphrase preference is reset to the password generator
+    preferences.pipe(take(1), takeUntil(this.destroyed)).subscribe((pref) => {
+      if (pref.password.algorithm === "passphrase") {
+        pref.password.algorithm = "password";
+        pref.password.updated = new Date();
+        preferences.next(pref);
+      }
+    });
     this.credentialType$
       .pipe(
         filter((type) => !!type),

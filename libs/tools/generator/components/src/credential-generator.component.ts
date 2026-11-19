@@ -270,7 +270,8 @@ export class CredentialGeneratorComponent implements OnInit, OnChanges, OnDestro
       .algorithms$("password", { account$: this.account$ })
       .pipe(
         map((algorithms) => {
-          const options = this.toOptions(algorithms);
+          // Fork patch: passphrase is hidden; only the password generator is offered
+          const options = this.toOptions(algorithms.filter((a) => a.id !== "passphrase"));
           options.push({ value: IDENTIFIER, label: this.i18nService.t("username") });
           return options;
         }),
@@ -508,7 +509,12 @@ export class CredentialGeneratorComponent implements OnInit, OnChanges, OnDestro
     // populate the form with the user's preferences to kick off interactivity
     preferences
       .pipe(
-        map(({ email, username, password }) => {
+        map(({ email, username, password: savedPassword }) => {
+          // Fork patch: a saved passphrase preference falls back to the password generator
+          const password =
+            (savedPassword.algorithm as string) === "passphrase"
+              ? { ...savedPassword, algorithm: "password" as typeof savedPassword.algorithm }
+              : savedPassword;
           const usernamePref = email.updated > username.updated ? email : username;
           const forwarderPref = isForwarderExtensionId(usernamePref.algorithm)
             ? usernamePref
