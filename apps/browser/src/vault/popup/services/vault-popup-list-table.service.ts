@@ -295,14 +295,14 @@ export class VaultPopupListTableService {
     const primaryAutofill = isAutofill && !currentUriIsBlocked;
 
     const login = CipherViewLikeUtils.getLogin(cipher as CipherViewLike);
-    const titleBase = primaryAutofill ? "autofillTitle" : "viewItemTitle";
+    const titleBase = "viewItemTitle"; // fork patch: viewing is always the primary action
 
     return {
       primaryAutofill,
       showFillOnHover: primaryAutofill,
       showLaunch: !isAutofill,
       showAutofillInMenu: !primaryAutofill,
-      showViewInMenu: primaryAutofill,
+      showViewInMenu: false,
       // Name the login's username field in the label when it has one.
       titleKey: login?.username != null ? `${titleBase}WithField` : titleBase,
     };

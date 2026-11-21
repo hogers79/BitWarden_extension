@@ -636,9 +636,8 @@ export class VaultPopupListTableComponent {
    * Primary click action for a row: autofill for autofill-section rows, otherwise navigate to view.
    */
   onCipherSelect(row: VaultTableRow) {
-    return row.actions.primaryAutofill
-      ? this.listTableService.doAutofill(row.cipher)
-      : this.listTableService.viewCipher(row.cipher);
+    // Fork patch: clicking a row always opens it; only the "Fill" button autofills.
+    return this.listTableService.viewCipher(row.cipher);
   }
 
   launchCipher(cipher: CipherViewLike) {

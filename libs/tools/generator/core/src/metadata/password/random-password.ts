@@ -55,7 +55,7 @@ const password: GeneratorMetadata<PasswordGeneratorSettings> = deepFreeze({
         ]),
         state: GENERATOR_DISK,
         initial: {
-          memorable: false,
+          memorable: true,
           length: 14,
           ambiguous: true,
           uppercase: true,
