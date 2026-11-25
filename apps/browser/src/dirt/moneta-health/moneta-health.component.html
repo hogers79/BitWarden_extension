@@ -1,0 +1,46 @@
+<popup-page>
+  <popup-header slot="header" pageTitle="{{ 'monetaHealthTitle' | i18n }}">
+    <ng-container slot="end">
+      <app-pop-out />
+      <app-current-account />
+    </ng-container>
+  </popup-header>
+  @if (scanFailed()) {
+    <dirt-health-scan-error (retry)="checkAgain()" />
+  } @else if (loading() || report() == null) {
+    <dirt-health-scanning />
+  } @else {
+    <div class="tw-flex tw-items-center tw-justify-between tw-mb-2">
+      <p class="tw-m-0 tw-text-muted">{{ "monetaHealthIntro" | i18n }}</p>
+      <button type="button" bitButton buttonType="secondary" size="small" (click)="checkAgain()">
+        {{ "monetaHealthCheckAgain" | i18n }}
+      </button>
+    </div>
+    @for (section of sections(); track section.category) {
+      <bit-section>
+        <bit-section-header>
+          <h2 bitTypography="h5">{{ section.titleKey | i18n }}</h2>
+          <span slot="end">{{ section.rows.length }}</span>
+        </bit-section-header>
+        @if (section.rows.length === 0) {
+          <p class="tw-text-muted">{{ section.emptyKey | i18n }}</p>
+        } @else {
+          <p class="tw-text-muted">{{ section.descriptionKey | i18n }}</p>
+          <bit-item-group>
+            @for (row of section.rows; track row.cipher.id) {
+              <bit-item>
+                <button bit-item-content type="button" (click)="onItemClick(row.cipher)">
+                  <div slot="start" class="tw-pr-2 tw-flex tw-items-center">
+                    <app-vault-icon [cipher]="row.cipher"></app-vault-icon>
+                  </div>
+                  {{ row.cipher.name }}
+                  <span slot="secondary">{{ row.cipher.login.username }}</span>
+                </button>
+              </bit-item>
+            }
+          </bit-item-group>
+        }
+      </bit-section>
+    }
+  }
+</popup-page>

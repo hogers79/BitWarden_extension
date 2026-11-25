@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component } from "@angular/core";
 import { combineLatest, map, Observable, startWith, switchMap } from "rxjs";
 
 import { NudgesService } from "@bitwarden/angular/vault";
@@ -10,6 +10,8 @@ import {
   SyncNav,
   SettingsInactive,
   SettingsActive,
+  MonetaHealthInactive,
+  MonetaHealthActive,
 } from "@bitwarden/assets/svg";
 import { AccountService } from "@bitwarden/common/auth/abstractions/account.service";
 import { getUserId } from "@bitwarden/common/auth/services/account.service";
@@ -18,8 +20,6 @@ import { BottomNavigationButton } from "@bitwarden/components";
 import { I18nService } from "@bitwarden/common/platform/abstractions/i18n.service";
 import { SyncService } from "@bitwarden/common/vault/abstractions/sync/sync.service.abstraction";
 import { ToastService } from "@bitwarden/components";
-
-import { HealthAccessService } from "../dirt/health/popup/services/health-access.service";
 
 // FIXME(https://bitwarden.atlassian.net/browse/CL-764): Migrate to OnPush
 // eslint-disable-next-line @angular-eslint/prefer-on-push-component-change-detection
@@ -38,8 +38,6 @@ export class TabsV2Component {
     private i18nService: I18nService,
   ) {}
 
-  private healthAccessService = inject(HealthAccessService);
-
   private userId$ = this.accountService.activeAccount$.pipe(getUserId);
   private hasActiveBadges$ = this.userId$.pipe(
     switchMap((userId) => this.nudgesService.hasActiveBadges$(userId)),
@@ -50,10 +48,6 @@ export class TabsV2Component {
     this.autofillSettingsService.showClipboardSettingUpdateNotification$,
   ]).pipe(map(([hasBadges, showClipboard]) => hasBadges || showClipboard));
 
-  private healthNavButton$ = this.userId$.pipe(
-    switchMap((userId) => this.healthAccessService.healthNavButton$(userId)),
-  );
-
   private async syncNow() {
     const success = await this.syncService.fullSync(true);
     this.toastService.showToast({
@@ -63,11 +57,9 @@ export class TabsV2Component {
     });
   }
 
-  protected navButtons$: Observable<BottomNavigationButton[]> = combineLatest([
-    this.showSettingsBerry$.pipe(startWith(false)),
-    this.healthNavButton$.pipe(startWith(undefined)),
-  ]).pipe(
-    map(([showBerry, healthNavButton]) => {
+  protected navButtons$: Observable<BottomNavigationButton[]> = this.showSettingsBerry$.pipe(
+    startWith(false),
+    map((showBerry) => {
       const buttons: BottomNavigationButton[] = [
         {
           label: "vault",
@@ -88,7 +80,12 @@ export class TabsV2Component {
           iconActive: SyncNav,
           action: () => void this.syncNow(),
         },
-        ...(healthNavButton ? [healthNavButton] : []),
+        {
+          label: "monetaHealthTab",
+          page: "/tabs/vault-health",
+          icon: MonetaHealthInactive,
+          iconActive: MonetaHealthActive,
+        },
         {
           label: "settings",
           page: "/tabs/settings",

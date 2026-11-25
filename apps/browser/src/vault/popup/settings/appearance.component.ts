@@ -36,7 +36,10 @@ import { PopOutComponent } from "../../../platform/popup/components/pop-out.comp
 import { PopupCompactModeService } from "../../../platform/popup/layout/popup-compact-mode.service";
 import { PopupHeaderComponent } from "../../../platform/popup/layout/popup-header.component";
 import { PopupPageComponent } from "../../../platform/popup/layout/popup-page.component";
-import { PopupSizeService } from "../../../platform/popup/layout/popup-size.service";
+import {
+  PopupHeightOptions,
+  PopupSizeService,
+} from "../../../platform/popup/layout/popup-size.service";
 
 // FIXME(https://bitwarden.atlassian.net/browse/CL-764): Migrate to OnPush
 // eslint-disable-next-line @angular-eslint/prefer-on-push-component-change-detection
@@ -80,6 +83,7 @@ export class AppearanceComponent implements OnInit {
     enableCompactMode: false,
     showQuickCopyActions: false,
     width: "default" as PopupWidthOption,
+    height: "650",
     showAtRiskNotifications: true,
   });
 
@@ -95,6 +99,12 @@ export class AppearanceComponent implements OnInit {
     { label: this.i18nService.t("wide"), value: "wide" },
     { label: this.i18nService.t("narrow"), value: "narrow" },
   ];
+
+  /** Moneta: available height options (px), the browser allows up to 1000 */
+  protected readonly heightOptions: Option<string>[] = PopupHeightOptions.map((h) => ({
+    label: `${h} px`,
+    value: String(h),
+  }));
 
   constructor(
     private messagingService: MessagingService,
@@ -126,6 +136,7 @@ export class AppearanceComponent implements OnInit {
       this.copyButtonsService.showQuickCopyActions$,
     );
     const width = await firstValueFrom(this.popupSizeService.width$);
+    const height = String(PopupSizeService.getStoredHeight());
     const showAtRiskNotifications = await firstValueFrom(
       this.vaultSettingsService.showAtRiskPasswordNotifications$,
     );
@@ -139,6 +150,7 @@ export class AppearanceComponent implements OnInit {
       enableCompactMode,
       showQuickCopyActions,
       width,
+      height,
       showAtRiskNotifications,
     });
 
@@ -184,6 +196,12 @@ export class AppearanceComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((width) => {
         void this.updateWidth(width);
+      });
+
+    this.appearanceForm.controls.height.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((height) => {
+        void this.popupSizeService.setPopupHeight(Number(height));
       });
 
     this.appearanceForm.controls.showAtRiskNotifications.valueChanges

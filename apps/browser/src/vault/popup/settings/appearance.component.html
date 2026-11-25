@@ -23,6 +23,11 @@
         <bit-select formControlName="width" [items]="widthOptions"></bit-select>
       </bit-form-field>
 
+      <bit-form-field>
+        <bit-label>{{ "extensionHeight" | i18n }}</bit-label>
+        <bit-select formControlName="height" [items]="heightOptions"></bit-select>
+      </bit-form-field>
+
       <bit-form-control>
         <input bitCheckbox formControlName="enableCompactMode" type="checkbox" />
         <bit-label>{{ "compactMode" | i18n }} </bit-label>

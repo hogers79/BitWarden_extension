@@ -18,6 +18,10 @@ const POPUP_WIDTH_KEY_DEF = new KeyDefinition<PopupWidthOption>(POPUP_STYLE_DISK
   deserializer: (s) => s,
 });
 
+export const POPUP_HEIGHT_STORAGE_KEY = "moneta-popup-height";
+export const PopupHeightOptions = [600, 650, 700, 800, 900, 1000] as const;
+export const DEFAULT_POPUP_HEIGHT = 650;
+
 /**
  * Handles sizing the popup based on available width/height, which can be affected by
  * user default zoom level.
@@ -44,41 +48,50 @@ export class PopupSizeService {
     });
   }
 
-  async setHeight() {
-    const isInChromeTab = await BrowserPopupUtils.isInTab();
-
-    /**
-     * To support both browser default zoom and system default zoom, we need to take into account
-     * the full screen height. When system default zoom is >100%, window.innerHeight still outputs
-     * a height equivalent to what it would be at 100%, which can cause the extension window to
-     * render as too tall. So if the screen height is smaller than the max possible extension height,
-     * we should use that to set our extension height. Otherwise, we want to use the window.innerHeight
-     * to support browser zoom.
-     *
-     * This is basically a workaround for what we consider a bug with browsers reporting the wrong
-     * available innerHeight when system zoom is turned on. If that gets fixed, we can remove the code
-     * checking the screen height.
-     */
-    const MAX_EXT_HEIGHT = 600;
-    const extensionInnerHeight = window.innerHeight;
-    // Use a 100px offset when calculating screen height to account for browser container elements
-    const screenAvailHeight = window.screen.availHeight - 100;
-    const availHeight =
-      screenAvailHeight < MAX_EXT_HEIGHT ? screenAvailHeight : extensionInnerHeight;
-
-    if (!BrowserPopupUtils.inPopup(window) || isInChromeTab) {
-      window.document.documentElement.classList.add("body-full");
-    } else if (availHeight < 300) {
-      window.document.documentElement.classList.add("body-3xs");
-    } else if (availHeight < 400) {
-      window.document.documentElement.classList.add("body-xxs");
-    } else if (availHeight < 500) {
-      window.document.documentElement.classList.add("body-xs");
-    } else if (availHeight < 600) {
-      window.document.documentElement.classList.add("body-sm");
+  /**
+   * Moneta: the popup height is a setting (Appearance, "Extension height"), kept in localStorage so it
+   * is known before the page renders. The browser (Curia) allows up to 1000 px; on a shorter screen
+   * the height is cut to what fits.
+   */
+  static getStoredHeight(): number {
+    try {
+      const stored = Number(localStorage.getItem(POPUP_HEIGHT_STORAGE_KEY));
+      return (PopupHeightOptions as readonly number[]).includes(stored)
+        ? stored
+        : DEFAULT_POPUP_HEIGHT;
+    } catch {
+      return DEFAULT_POPUP_HEIGHT;
     }
   }
 
+  async setPopupHeight(height: number) {
+    localStorage.setItem(POPUP_HEIGHT_STORAGE_KEY, String(height));
+    await this.setHeight();
+  }
+
+  async setHeight() {
+    const isInChromeTab = await BrowserPopupUtils.isInTab();
+    const html = window.document.documentElement;
+    html.classList.remove("body-sm", "body-xs", "body-xxs", "body-3xs");
+    html.style.minHeight = "";
+
+    const chosenHeight = PopupSizeService.getStoredHeight();
+    // Use a 100px offset when calculating screen height to account for browser container elements
+    const screenAvailHeight = window.screen.availHeight - 100;
+    const availHeight = Math.min(screenAvailHeight, chosenHeight);
+
+    if (!BrowserPopupUtils.inPopup(window) || isInChromeTab) {
+      html.classList.add("body-full");
+    } else if (availHeight < 300) {
+      html.classList.add("body-3xs");
+    } else if (availHeight < 400) {
+      html.classList.add("body-xxs");
+    } else if (availHeight < 500) {
+      html.classList.add("body-xs");
+    } else {
+      html.style.minHeight = `${Math.floor(availHeight)}px`;
+    }
+  }
   private static async setStyle(width: PopupWidthOption) {
     const isInTab = await BrowserPopupUtils.isInTab();
     const pxWidth = PopupWidthOptions[width] ?? PopupWidthOptions.default;

@@ -121,3 +121,4 @@ export * from "./vault.icon";
 export * from "./vault";
 export * from "./wave.icon";
 export * from "./health.icon";
+export * from "./moneta-health.icon";

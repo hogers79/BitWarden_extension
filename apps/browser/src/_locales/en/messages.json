@@ -8194,6 +8194,21 @@
     "message": "Your vault scan didn't complete due to an unexpected error.",
     "description": "Explains that the vault health scan did not complete."
   },
+  "extensionHeight": {
+    "message": "Extension height"
+  },
+  "monetaHealthTab": {
+    "message": "Health"
+  },
+  "monetaHealthTitle": {
+    "message": "Vault health"
+  },
+  "monetaHealthIntro": {
+    "message": "Passwords found in breaches, weak and reused."
+  },
+  "monetaHealthCheckAgain": {
+    "message": "Check again"
+  },
   "exposedPasswordsTitle": {
     "message": "Exposed passwords"
   },

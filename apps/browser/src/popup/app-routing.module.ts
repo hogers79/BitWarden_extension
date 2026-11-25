@@ -71,6 +71,7 @@ import { NotificationsSettingsComponent } from "../autofill/popup/settings/notif
 import { PremiumV2Component } from "../billing/popup/settings/premium-v2.component";
 import { HealthRiskCategoryDetailComponent } from "../dirt/health/popup/health-risk-category-detail.component";
 import { HealthComponent } from "../dirt/health/popup/health.component";
+import { MonetaHealthComponent } from "../dirt/moneta-health/moneta-health.component";
 import {
   canAccessHealth,
   canAccessHealthDetail,
@@ -819,6 +820,12 @@ const routes: Routes = [
         path: "health",
         component: HealthComponent,
         canActivate: [authGuard, canAccessHealth],
+        data: { elevation: 0 } satisfies RouteDataProperties,
+      },
+      {
+        path: "vault-health",
+        component: MonetaHealthComponent,
+        canActivate: [authGuard],
         data: { elevation: 0 } satisfies RouteDataProperties,
       },
     ],
